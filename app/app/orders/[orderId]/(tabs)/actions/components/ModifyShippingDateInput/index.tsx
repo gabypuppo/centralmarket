@@ -26,11 +26,11 @@ export default function ModifyShippingDateInput() {
           label: `Fecha de entrega modificada a ${date}`,
           modifiedBy: 'Usuario'
         })
-        if (!orderData.id || !orderData.createdBy || !orderData.assignedBuyerId) {
+        if (!orderData.id || !orderData.createdBy || !orderData.assignedBuyerId || !orderData.createdAt) {
           console.error('Missing order data')
           return
         }
-        sendMailModifyShippingDateAction(orderData.id, orderData.createdBy, orderData.assignedBuyerId)
+        sendMailModifyShippingDateAction(orderData.id, orderData.createdBy, orderData.createdAt.toISOString())
       })
       .catch((err) => {
         console.error(err)

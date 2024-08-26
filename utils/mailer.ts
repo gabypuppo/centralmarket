@@ -42,7 +42,7 @@ export const sendMailBuyerSelected = async (
       title: 'Comprador asignado',
       message:
         'La solicitud número ' + orderId + ' ha sido asignada a uno de nuestros compradores. <br><br> <b>Detalles de la solicitud:</b><br><ul><li>Numero de la solicitud: ' + orderId + '</li><li>Fecha de generación: ' + createdAt + '</li><li>Productos/Servicios solicitados: ' + products.map(product => product.product).join(', ') + '</li></ul><br>Puede acceder a su solicitud y seguir su progreso en http://www.centralmarket.com.ar.<br><br>Si tiene alguna consulta, dejar la misma en la parte de <b>Preguntas</b> de la solicitud.<br>Muchas gracias.',
-      order_url: 'https://central-market-app.vercel.app/app/orders/' + orderId
+      order_url: 'https://central-market.vercel.app/app/orders/' + orderId
     },
     from: 'verify@em9140.centralmarket.com.ar'
   }
@@ -55,7 +55,7 @@ export const sendMailBuyerSelected = async (
       title: 'Comprador asignado',
       message:
         'Se ha asignado un comprador al pedido. Puedes ver los detalles en el siguiente link',
-      order_url: 'https://central-market-app.vercel.app/app/orders/' + orderId
+      order_url: 'https://central-market.vercel.app/app/orders/' + orderId
     },
     from: 'verify@em9140.centralmarket.com.ar'
   }
@@ -80,7 +80,7 @@ export const sendMailBudgetApproved = async ( orderId: number, assignedBuyerId: 
         subject: 'Presupuesto aprobado para el pedido #' + orderId,
         title: 'Presupuesto aprobado',
         message: 'Tu presupuesto ha sido aprobado',
-        order_url: 'https://central-market-app.vercel.app/app/orders/' + orderId
+        order_url: 'https://central-market.vercel.app/app/orders/' + orderId
         },
         from: 'verify@em9140.centralmarket.com.ar'
     }
@@ -107,7 +107,7 @@ export const sendMailNewQuestion = async (orderId: number, createdBy: number, as
         subject: 'Nueva pregunta para el pedido #' + orderId,
         title: 'Nueva pregunta',
         message: 'Se ha realizado una nueva pregunta en tu pedido',
-        order_url: 'https://central-market-app.vercel.app/app/orders/' + orderId
+        order_url: 'https://central-market.vercel.app/app/orders/' + orderId
         },
         from: 'verify@em9140.centralmarket.com.ar'
     }
@@ -119,7 +119,7 @@ export const sendMailNewQuestion = async (orderId: number, createdBy: number, as
         subject: 'Nueva pregunta para el pedido #' + orderId,
         title: 'Nueva pregunta',
         message: 'Se ha realizado una nueva pregunta en tu pedido',
-        order_url: 'https://central-market-app.vercel.app/app/orders/' + orderId
+        order_url: 'https://central-market.vercel.app/app/orders/' + orderId
         },
         from: 'verify@em9140.centralmarket.com.ar'
     }
@@ -148,7 +148,7 @@ export const sendMailModifyShippingDate = async (
         subject: 'Fecha de envío modificada del pedido #' + orderId,
         title: 'Fecha de envío modificada',
         message: 'La fecha de envío ha sido modificada',
-        order_url: 'https://central-market-app.vercel.app/app/orders/' + orderId
+        order_url: 'https://central-market.vercel.app/app/orders/' + orderId
         },
         from: 'verify@em9140.centralmarket.com.ar'
     }
@@ -178,7 +178,7 @@ export const sendMailOrderCreated = async (
         subject: 'Solicitud generada - #' + orderId,
         title: 'Solicitud generada #' + orderId,
         message: 'Estimado cliente,<br> La solicitud #' + orderId + ' ha sido generada exitosamente. <br><b>Detalles de la solicitud:</b><br><ul><li>Numero de la solicitud: ' + orderId + '</li><li>Fecha de generación: ' + createdAt + '</li><li>Productos/Servicios solicitados: ' + products.map(product => product.product).join(', ') + '</li></ul><br>Puede acceder a su solicitud y seguir su progreso en http://www.centralmarket.com.ar.<br><br>Si tiene alguna consulta, dejar la misma en la parte de <b>Preguntas</b> de la solicitud.<br>Muchas gracias.',
-        order_url: 'https://central-market-app.vercel.app/app/orders/' + orderId
+        order_url: 'https://central-market.vercel.app/app/orders/' + orderId
         },
         from: 'verify@em9140.centralmarket.com.ar'
 
@@ -210,7 +210,7 @@ export const sendMailProductUpdated = async (
       subject: 'Producto actualizado',
       title: 'Un producto de tu orden #' + orderId + ' ha sido actualizado',
       message: 'Tu producto ha sido actualizado. Puedes ver los detalles en el siguiente link',
-      order_url: 'https://central-market-app.vercel.app/app/orders/' + orderId
+      order_url: 'https://central-market.vercel.app/app/orders/' + orderId
     },
     from: 'verify@em9140.centralmarket.com.ar'
   }
@@ -222,7 +222,7 @@ export const sendMailProductUpdated = async (
       subject: 'Producto actualizado',
       title: 'Un producto de tu orden #' + orderId + ' ha sido actualizado',
       message: 'Tu producto ha sido actualizado. Puedes ver los detalles en el siguiente link',
-      order_url: 'https://central-market-app.vercel.app/app/orders/' + orderId
+      order_url: 'https://central-market.vercel.app/app/orders/' + orderId
     },
     from: 'verify@em9140.centralmarket.com.ar'
   }
@@ -253,7 +253,7 @@ export const sendMailOrderRejected = async (
       title: 'Disputa pedido #' + orderId,
       message:
         'Para seguir con la disputa, responde este mail con la razón de la disputa. Por favor, adjunta imagenes, videos y tu problema bien detallado.  Nos pondremos en contacto contigo en breve.',
-      order_url: 'https://central-market-app.vercel.app/app/orders/' + orderId
+      order_url: 'https://central-market.vercel.app/app/orders/' + orderId
     },
     from: 'verify@em9140.centralmarket.com.ar'
   }
@@ -265,7 +265,7 @@ export const sendMailOrderRejected = async (
       title: 'Disputa pedido #' + orderId,
       message:
         'Se ha generado una disputa para el pedido. Puedes ver los detalles en el siguiente link',
-      order_url: 'https://central-market-app.vercel.app/app/orders/' + orderId
+      order_url: 'https://central-market.vercel.app/app/orders/' + orderId
     },
     from: 'verify@em9140.centralmarket.com.ar'
   }
@@ -277,7 +277,7 @@ export const sendMailOrderRejected = async (
       title: 'Disputa pedido #' + orderId,
       message:
         'Se ha generado una disputa para el pedido. Puedes ver los detalles en el siguiente link',
-      order_url: 'https://central-market-app.vercel.app/app/orders/' + orderId
+      order_url: 'https://central-market.vercel.app/app/orders/' + orderId
     },
     from: 'verify@em9140.centralmarket.com.ar'
   }
@@ -308,7 +308,7 @@ export const sendMailOrderCancelled = async (
       subject: 'Notificación de Cancelación de pedido',
       title: 'Notificación de Cancelación de pedido',
       message: 'Su solicitud ' + orderId + ' ha sido cancelada correctamente.<br>Detalles de la cancelación:<br><ul><li>Número de la solicitud: ' + orderId + '</li><li>Fecha de cancelación: ' + createdAt + '</li></ul><br>Ante cualquier duda, por favor, contactar con soporte@centralmarket.com.ar<br>',
-      order_url: 'https://central-market-app.vercel.app/app/orders/' + orderId
+      order_url: 'https://central-market.vercel.app/app/orders/' + orderId
     },
     from: 'verify@em9140.centralmarket.com.ar'
   }
@@ -319,7 +319,7 @@ export const sendMailOrderCancelled = async (
       subject: 'Notificación de Cancelación de pedido',
       title: 'Notificación de Cancelación de pedido',
       message: 'La solicitud ' + orderId + ' ha sido cancelada correctamente.',
-      order_url: 'https://central-market-app.vercel.app/app/orders/' + orderId
+      order_url: 'https://central-market.vercel.app/app/orders/' + orderId
     },
     from: 'verify@em9140.centralmarket.com.ar'
   }
@@ -337,8 +337,8 @@ export const sendMailValidation = async (userId: number, mail: string, firstName
       subject: 'Verifica tu cuenta!',
       title: 'Verifica tu cuenta!',
       message: firstName + ', por favor, verifica tu cuenta haciendo click en el siguiente link',
-      link: 'https://central-market-app.vercel.app/auth/verify/' + token,
-      confirmation_url: 'https://central-market-app.vercel.app/auth/verify/' + token
+      link: 'https://central-market.vercel.app/auth/verify/' + token,
+      confirmation_url: 'https://central-market.vercel.app/auth/verify/' + token
     },
     from: 'verify@em9140.centralmarket.com.ar'
   }
@@ -369,7 +369,7 @@ export const sendMailGoBackToBudgetsInProgress = async (
       subject: 'Actualización de la solicitud #' + orderId,
       title: 'Actualización de la solicitud #' + orderId,
       message: 'La solicitud #' + orderId + ' se encuentra bajo revisión y actualización de los presupuestos. <br> Detalles de la solicitud:<br><ul><li>Número de la solicitud: ' + orderId + '</li><li>Estado de pedido: Presupuestos en Re-Trabajo</li></ul><br>Puede acceder a su solicitud y seguir su progreso en http://www.centralmarket.com.ar.<br><br>Si tiene alguna consulta, dejar la misma en la parte de <b>Preguntas</b> de la solicitud.<br>',
-      order_url: 'https://central-market-app.vercel.app/app/orders/' + orderId
+      order_url: 'https://central-market.vercel.app/app/orders/' + orderId
     },
     from: 'verify@em9140.centralmarket.com.ar'
   }
@@ -399,7 +399,7 @@ export const sendMailBudgetsToRewiew = async (
       subject: 'Presupuestos disponibles para la solicitud #' + orderId,
       title: 'Presupuestos disponibles para la solicitud #' + orderId,
       message: 'Los prepuestos han sido cargados exitosamente en nuestra plataforma. <br> Detalles de la solicitud:<br><ul><li>Número de la solicitud: ' + orderId + '</li><li>Fecha de generación: ' + createdAt + '</li></ul><br>Puede acceder a su solicitud y seguir su progreso en http://www.centralmarket.com.ar.<br><br>Si tiene alguna consulta, dejar la misma en la parte de <b>Preguntas</b> de la solicitud.<br>',
-      order_url: 'https://central-market-app.vercel.app/app/orders/' + orderId
+      order_url: 'https://central-market.vercel.app/app/orders/' + orderId
     },
     from: 'verify@em9140.centralmarket.com.ar'
   }
@@ -429,7 +429,7 @@ export const sendMailOrderInformationComplete = async (
       subject: 'Información del pedido completada',
       title: 'Información del pedido completada',
       message: 'La información del pedido ha sido completada',
-      order_url: 'https://central-market-app.vercel.app/app/orders/' + orderId
+      order_url: 'https://central-market.vercel.app/app/orders/' + orderId
     },
     from: 'verify@em9140.centralmarket.com.ar'
   }
@@ -440,7 +440,7 @@ export const sendMailOrderInformationComplete = async (
       subject: 'Información del pedido completada',
       title: 'Información del pedido completada',
       message: 'La información del pedido ha sido completada',
-      order_url: 'https://central-market-app.vercel.app/app/orders/' + orderId
+      order_url: 'https://central-market.vercel.app/app/orders/' + orderId
     },
     from: 'verify@em9140.centralmarket.com.ar'
   }
@@ -468,7 +468,7 @@ export const sendMailOrderInformationIncomplete = async (
       subject: 'Nueva pregunta para el pedido #' + orderId,
       title: 'Nueva pregunta para el pedido #' + orderId,
       message: 'Estimado cliente, <br> Nos gustaría informarle que hemos revisado su solicitud y hemos identificado que necesitamos información adicional para continuar con el proceso.<br><br> Detalle de la solicitud: <br><ul><li>Numero de la solicitud: ' + orderId + '</li><li>Fecha de generación: ' + createdAt + '</li></ul><br>Puede acceder a su solicitud y seguir su progreso en http://www.centralmarket.com.ar.<br><br>Si tiene alguna consulta, dejar la misma en la parte de <b>Preguntas</b> de la solicitud.<br>Muchas gracias.',
-      order_url: 'https://central-market-app.vercel.app/app/orders/' + orderId
+      order_url: 'https://central-market.vercel.app/app/orders/' + orderId
     },
     from: 'verify@em9140.centralmarket.com.ar'
   }
@@ -483,7 +483,7 @@ export const sendRecoveryEmail = async (user: User) => {
     to: user.email!,
     from: 'verify@em9140.centralmarket.com.ar',
     subject: 'Recupera tu contraseña de CentralMarket',
-    text: `Continua al siguiente link para cambiar tu contraseña: https://central-market-app.vercel.app/auth/recover/${token}?email=${user.email}`
+    text: `Continua al siguiente link para cambiar tu contraseña: https://central-market.vercel.app/auth/recover/${token}?email=${user.email}`
   }
 
   await sendEmail(otherMsg)
