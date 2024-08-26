@@ -104,7 +104,12 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
             label: 'Solicitud creada',
             modifiedBy: user.organizationId === 1 ? 'Central Market' : 'Usuario'
           }),
-          sendMailOrderCreatedAction(res.id, user.id)
+          sendMailOrderCreatedAction(
+            res.id,
+            user.id,
+            products.map(p => ({ ...p, id: 0, orderId: res.id })),
+            new Date().toLocaleDateString()
+          )
         ])
       })
       .catch((err) => console.error(err))
@@ -213,16 +218,6 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
               onChange={(e) => {
                 const value = e.target.value
                 setFinalAddress(value)
-              }}
-            />
-          </label>
-          <label className="text-xs font-medium flex flex-col gap-2 items-start">
-            Notas
-            <Input
-              type="text"
-              className="font-normal"
-              onChange={(e) => {
-                setNotes(e.target.value)
               }}
             />
           </label>

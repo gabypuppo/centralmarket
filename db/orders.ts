@@ -1,6 +1,6 @@
 'server only'
 import { boolean, integer, jsonb, pgTable, real, serial, text, timestamp, varchar } from 'drizzle-orm/pg-core'
-import { db } from './db'
+import { db } from "./db";
 import { desc, eq, or, and, getTableColumns, ilike, like } from 'drizzle-orm'
 import { del, put } from '@vercel/blob'
 import { type Organization, organizations } from './organizations'

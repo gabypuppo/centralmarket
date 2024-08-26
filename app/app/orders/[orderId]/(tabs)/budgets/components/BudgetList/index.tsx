@@ -43,12 +43,12 @@ export default function BudgetList({ budgets }: BudgetListProps) {
       modifiedBy: user?.organizationId === 1 ? 'Central Market' : 'Usuario'
     })
 
-    if (!orderData.id || !orderData.createdBy || !orderData.assignedBuyerId) {
+    if (!orderData.id || !orderData.createdBy || !orderData.assignedBuyerId || !orderData.createdAt) {
       setIsUploading(false)
       return
     }
 
-    sendMailBudgetApprovedAction(orderData.id, orderData.createdBy, orderData.assignedBuyerId)
+    sendMailBudgetApprovedAction(orderData.id, orderData.assignedBuyerId, orderData.createdAt.toISOString())
 
     Promise.all([updateOrderPromise, addHistoryPromise])
       .then(([order]) => {

@@ -6,6 +6,8 @@ import { getUserById } from '@/db/users'
 import React from 'react'
 import { OrderStatusEnum } from '@/utils/enums'
 import AssignCreatedByButton from './components/AssignCreatedByButton'
+import { Button } from '@/components/ui/Button'
+import { updateOrderAction } from '@/utils/actions'
 
 interface PageProps {
   params: {
@@ -35,7 +37,20 @@ export default async function Page({ params }: PageProps) {
         <div className="flex flex-col gap-1">
           {
             order.orderStatus === 'REJECTED' && (
-              <span className='font-bold'>Se genero una disputa para este pedido. Por favor, revisar el mail para mas detalles.</span>
+              <div>
+                <span className='font-bold'>Se genero una disputa para este pedido. Por favor, revisar el mail para mas detalles.</span>
+                <form action={
+                  async () => {
+                    'use server'
+                    await updateOrderAction({
+                      id: order.id,
+                      orderStatus: 'COMPLETED'
+                    })
+                  }
+                }>
+                  <Button variant='outline' className='mt-2' type='submit'>Disputa resuelta</Button>
+                </form>
+              </div>
             )
           }
           <h3 className="font-medium">Detalles de Creación</h3>

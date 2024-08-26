@@ -3,7 +3,7 @@ import * as Dialog from '@/components/ui/AlertDialogComplete'
 import { revalidatePath } from 'next/cache'
 import { addHistory, updateOrder, type Order } from '@/db/orders'
 import { auth } from '@/auth'
-import { sendMailOrderInformationCompleteAction } from '@/utils/actions'
+import { sendMailOrderInformationCompleteAction, sendMailOrderInformationIncompleteAction } from '@/utils/actions'
 
 interface ValidateInfoDialogProps {
   order: Order
@@ -23,6 +23,14 @@ export default async function ValidateInfoDialog({ order }: ValidateInfoDialogPr
       label: 'Pedido necesita mas información',
       modifiedBy: session?.user.organizationId === 1 ? 'Central Market' : 'Usuario'
     })
+
+    if (!order.id || !order.createdBy || !order.createdAt) {
+      console.error('No se pudo enviar el mail')
+      revalidatePath(`/${order.id}/actions`)
+      return
+    }
+
+    await sendMailOrderInformationIncompleteAction(order.id, order.createdBy, order.createdAt.toISOString())
 
     revalidatePath(`/${order.id}/actions`) 
   }

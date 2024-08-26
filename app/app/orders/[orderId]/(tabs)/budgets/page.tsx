@@ -56,9 +56,9 @@ export default async function Page({ params }: PageProps) {
     })
     await Promise.all(historyPromises)
 
-    if (!order.id || !order.createdBy || !order.assignedBuyerId ) return
+    if (!order.id || !order.createdBy || !order.assignedBuyerId || !order.createdAt) return
 
-    sendMailBudgetsToRewiewAction(order.id, order.createdBy, order.assignedBuyerId)
+    sendMailBudgetsToRewiewAction(order.id, order.createdBy, order.assignedBuyerId, order.createdAt.toISOString())
     revalidatePath(`/${orderId}/budgets`)
   }
 
@@ -80,6 +80,7 @@ export default async function Page({ params }: PageProps) {
   }
 
   const isBudgetStage = OrderStatusEnum[order.orderStatus!] >= OrderStatusEnum.BUDGETS_IN_PROGRESS
+  const isOrderRejected = order.orderStatus === 'REJECTED'
 
   return (
     <Card>
@@ -89,7 +90,7 @@ export default async function Page({ params }: PageProps) {
       </CardHeader>
       <CardContent className="space-y-2">
         <div>
-          {isBudgetStage ? (
+          {isBudgetStage ||isOrderRejected ? (
             budgets ? (
               budgets.length !== 0 ? (
                 <BudgetList budgets={budgets} />

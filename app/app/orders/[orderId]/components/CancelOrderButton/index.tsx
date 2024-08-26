@@ -43,8 +43,8 @@ export default function CancelOrderButton() {
       })
       .finally(() => {
         setIsUploading(false)
-        if (!orderData.id || !orderData.createdBy || !orderData.assignedBuyerId) return
-        sendMailOrderCancelledAction(orderData.id, orderData.createdBy, orderData.assignedBuyerId)
+        if (!orderData.id || !orderData.createdBy || !orderData.assignedBuyerId || !orderData.createdAt) return
+        sendMailOrderCancelledAction(orderData.id, orderData.createdBy, orderData.assignedBuyerId, orderData.createdAt.toISOString())
       })
   }
 
