@@ -11,6 +11,7 @@ import ModifyShippingDateInput from './components/ModifyShippingDateInput'
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
 import { sendMailGoBackToBudgetsInProgressAction } from '@/utils/actions'
+import ModifyOrderParamInput from './components/ModifyOrderPropertyInput'
 
 interface PageProps {
   params: {
@@ -105,7 +106,13 @@ export default async function Page({ params }: PageProps) {
                 </>
               )
             case 'COMPLETED':
-              return <p>Confirmación del cliente: {order.isArrived ? 'Si' : 'No'}</p>
+              return (
+                <>
+                  <p>Confirmación del cliente: {order.isArrived ? 'Si' : 'No'}</p>
+                  <ModifyOrderParamInput order={order} property="remittance" label="N° Remito"/>
+                  <ModifyOrderParamInput order={order} property="invoice" label="N° Factura"/>
+                </>
+              )
             case 'CANCELLED':
               return <span>El pedido ha sido cancelado.</span>
             case 'REJECTED':

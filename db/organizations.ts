@@ -16,7 +16,7 @@ export const organizations = pgTable('organizations', {
 
 export type Organization = typeof organizations.$inferSelect
 
-const deliveryPoints = pgTable('delivery_points', {
+export const deliveryPoints = pgTable('delivery_points', {
   id: serial('id').primaryKey(),
   organizationId: integer('organization_id'),
   name: varchar('name', { length: 64 }),

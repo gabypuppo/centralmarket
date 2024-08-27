@@ -1,9 +1,10 @@
 'server only'
-import { boolean, integer, jsonb, pgTable, real, serial, text, timestamp, varchar } from 'drizzle-orm/pg-core'
-import { db } from "./db";
+import { alias, boolean, integer, jsonb, pgTable, real, serial, text, timestamp, varchar } from 'drizzle-orm/pg-core'
+import { db } from './db'
 import { desc, eq, or, and, getTableColumns, ilike, like } from 'drizzle-orm'
 import { del, put } from '@vercel/blob'
-import { type Organization, organizations } from './organizations'
+import { deliveryPoints, type Organization, organizations } from './organizations'
+import { users } from './users'
 
 export const orders = pgTable('orders', {
   id: serial('id').primaryKey(),
@@ -24,7 +25,11 @@ export const orders = pgTable('orders', {
   questions: jsonb('questions').array(),
   categoryId: integer('category_id'),
   isArrived: boolean('is_arrived').notNull().default(false),
-  budgetsObservations: varchar('budgets_observations')
+  budgetsObservations: varchar('budgets_observations'),
+  remittance: varchar('remittance'),
+  invoice: varchar('invoice'),
+  budgetedAt: timestamp('budgeted_at'),
+  approvedAt: timestamp('approved_at')
 })
 
 export type Order = typeof orders.$inferSelect
@@ -109,7 +114,7 @@ export async function getOrdersCentralMarket(
 ): Promise<(Order & { organization: Organization | null })[]> {
   const order = getTableColumns(orders)
   const organization = getTableColumns(organizations)
-  console.log(status)
+
   return await db
     .select({ ...order, organization: { ...organization } })
     .from(orders)
@@ -362,9 +367,57 @@ export async function addFiles(orderId: number, userId: number, files: File[]) {
       fileName: file.name,
       fileUrl: url
     })
-}))
+  }))
 }
 
 export async function removeFile(fileId: number) {
   await db.delete(orderFiles).where(eq(orderFiles.id, fileId))
+}
+
+export async function getOrdersCSVData(
+  where?: string,
+  status?: OrderStatus
+) {
+  const order = getTableColumns(orders)
+  const organization = getTableColumns(organizations)
+  const deliveryPoint = getTableColumns(deliveryPoints)
+  const product = getTableColumns(orderProducts)
+  const category = getTableColumns(orderCategories)
+  const user = getTableColumns(users)
+  
+  const buyers = alias(users, 'buyers')
+  const buyer = getTableColumns(buyers)
+
+  return await db
+    .select({
+      ...order, 
+      organization: { ...organization }, 
+      deliveryPoint: { ...deliveryPoint },
+      product: { ...product },
+      category: { ...category },
+      creator: { ...user },
+      buyer: { ...buyer }
+      
+    })
+    .from(orders)
+    .where(
+      and(
+        status ? like(orders.orderStatus, status) : undefined,
+        where
+          ? or(
+            ilike(orders.finalClient, `%${where}%`),
+            ilike(orders.finalAddress, `%${where}%`),
+            ilike(orders.notes, `%${where}%`),
+            ilike(organizations.name, `%${where}%`)
+          )
+          : undefined
+      )
+    )
+    .leftJoin(organizations, eq(orders.organizationId, organizations.id))
+    .leftJoin(deliveryPoints, eq(orders.deliveryPointId, deliveryPoints.id))
+    .leftJoin(orderProducts, eq(orders.id, orderProducts.orderId))
+    .leftJoin(users, eq(orders.createdBy, users.id))
+    .leftJoin(buyers, eq(order.assignedBuyerId, buyers.id))
+    .leftJoin(orderCategories, eq(order.categoryId, orderCategories.id))
+    .orderBy(order.id)
 }

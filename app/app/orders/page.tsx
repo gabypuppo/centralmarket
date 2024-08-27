@@ -1,21 +1,13 @@
 import { auth } from '@/auth'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { getOrdersCentralMarket,
-  getOrdersByBuyer,
-  getOrdersByOrganization,
-  getOrdersByUser,
-  type Order } from '@/db/orders'
+import { getOrdersCentralMarket, getOrdersByBuyer, getOrdersByOrganization, getOrdersByUser, type Order, getOrdersCSVData } from '@/db/orders'
 import Link from 'next/link'
 import { getFormattedColors, getFormattedLabel } from './utils'
-import { Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow } from '@/components/ui/Table'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table'
 import SearchBar from '../organization/components/SearchBar'
 import StatusSelect from './components/StatusSelect'
+import DownloadCSV from './components/DownloadCSV'
 
 export default async function Page({ searchParams }: any) {
   const session = await auth()
@@ -36,7 +28,7 @@ export default async function Page({ searchParams }: any) {
   }
 
   let ordersByOrganization: Awaited<ReturnType<typeof getOrdersCentralMarket>>
-  
+
   if (isCentralMarket) {
     ordersByOrganization = await getOrdersCentralMarket(where, status)
   } else {
@@ -46,9 +38,10 @@ export default async function Page({ searchParams }: any) {
 
   const sortOrders = <T extends Order>(orders: T[]) =>
     orders.sort(
-      (a, b) =>
-        (a.createdAt?.getTime() ?? Date.now()) - (b.createdAt?.getTime() ?? Date.now())
+      (a, b) => (a.createdAt?.getTime() ?? Date.now()) - (b.createdAt?.getTime() ?? Date.now())
     )
+
+  const ordersCSVData = await getOrdersCSVData()
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-muted/40">
@@ -62,14 +55,18 @@ export default async function Page({ searchParams }: any) {
               ? 'Visualiza todas las solicitudes en las que eres comprador'
               : 'Visualiza todas tus solicitudes'}
           </p>
-          {!isCentralMarket && (
-            <Link
-              href={'orders/new'}
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-min mt-6"
-            >
-              CREAR SOLICITUD
-            </Link>
-          )}
+          <div className="flex content-between">
+            {!isCentralMarket ? (
+              <Link
+                href={'orders/new'}
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-min mt-6"
+              >
+                CREAR SOLICITUD
+              </Link>
+            ) : (
+              <DownloadCSV orders={ordersCSVData} />
+            )}
+          </div>
         </div>
         <div className="grid gap-6 max-w-6xl w-full mx-auto">
           <div className="overflow-x-auto grid gap-4 lg:gap-px lg:bg-gray-50">
@@ -102,7 +99,9 @@ export default async function Page({ searchParams }: any) {
                     <TableCell>
                       <div className="flex gap-1 flex-1 min-w-20 items-center">
                         {order?.orderStatus && (
-                          <Badge className={getFormattedColors(order.orderStatus)}>{getFormattedLabel(order.orderStatus)}</Badge>
+                          <Badge className={getFormattedColors(order.orderStatus)}>
+                            {getFormattedLabel(order.orderStatus)}
+                          </Badge>
                         )}
                       </div>
                     </TableCell>
@@ -173,7 +172,9 @@ export default async function Page({ searchParams }: any) {
                         <TableCell>
                           <div className="flex gap-1 flex-1 min-w-20 items-center">
                             {order?.orderStatus && (
-                              <Badge className={getFormattedColors(order.orderStatus)}>{getFormattedLabel(order.orderStatus)}</Badge>
+                              <Badge className={getFormattedColors(order.orderStatus)}>
+                                {getFormattedLabel(order.orderStatus)}
+                              </Badge>
                             )}
                           </div>
                         </TableCell>
@@ -194,9 +195,7 @@ export default async function Page({ searchParams }: any) {
                         <TableCell>
                           <div className="flex gap-1">
                             <Link href={'/app/orders/' + order.id}>
-                              <Button>
-                                Detalle
-                              </Button>
+                              <Button>Detalle</Button>
                             </Link>
                           </div>
                         </TableCell>

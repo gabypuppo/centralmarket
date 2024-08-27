@@ -72,3 +72,22 @@ export function arrayBufferToFile(arrayBuffer: ArrayBuffer, fileName: string, mi
 
   return file
 }
+
+export function arrayDataToCSVFile<T extends object>(data: T[], fileName: string = 'file') {
+  const titleKeys = Object.keys(data[0])
+
+  const refinedData = []
+  refinedData.push(titleKeys)
+
+  data.forEach((item) => {
+    refinedData.push(Object.values(item))
+  })
+
+  let csvContent = ''
+
+  refinedData.forEach((row) => {
+    csvContent += row.join(';') + '\n'
+  })
+
+  return new File([csvContent], fileName, { type: 'text/csv;charset=utf-8,' })
+}

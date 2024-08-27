@@ -34,7 +34,8 @@ export default function BudgetList({ budgets }: BudgetListProps) {
     const updateOrderPromise = updateOrderAction({
       id: orderData.id,
       selectedBudgetId: selectedId,
-      orderStatus: 'BUDGETS_APPROVED'
+      orderStatus: 'BUDGETS_APPROVED',
+      approvedAt: new Date()
     })
 
     const addHistoryPromise = addHistoryAction({
