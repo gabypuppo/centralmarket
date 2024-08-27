@@ -88,7 +88,7 @@ export default async function SelectBuyer({ order }: SelectBuyerProps) {
       modifiedBy: organizationId === 1 ? 'Central Market' : 'Usuario'
     })
 
-    if (!order.id || !order.createdBy || !assignedBuyerId) return
+    if (!order.id || !order.createdBy || !assignedBuyerId || !order.createdAt) return
     
     await sendMailBuyerSelectedAction(order.id, order.createdBy, assignedBuyerId, order.createdAt.toISOString())
 
