@@ -14,8 +14,9 @@ export async function getUserAction() {
   return user
 }
 
-export async function sendMailBuyerSelectedAction(orderId: number, createdBy: number, assignedBuyerId: number, products: OrderProduct[], createdAt: string) {
-  await sendMailBuyerSelected(orderId, createdBy, assignedBuyerId, products, createdAt)
+export async function sendMailBuyerSelectedAction(orderId: number, createdBy: number, assignedBuyerId: number, createdAt: string) {
+
+  await sendMailBuyerSelected(orderId, createdBy, assignedBuyerId, createdAt)
 }
 
 export async function sendMailBudgetApprovedAction(orderId: number, assignedBuyerId: number, createdAt: string) {

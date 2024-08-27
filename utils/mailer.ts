@@ -21,7 +21,6 @@ export const sendMailBuyerSelected = async (
   orderId: number,
   createdBy: number,
   assignedBuyerId: number,
-  products: OrderProduct[],
   createdAt: string
 ) => {
   const user = await getMailWithUserId(createdBy)
@@ -41,7 +40,7 @@ export const sendMailBuyerSelected = async (
       subject: 'Comprador asignado - Solicitud #' + orderId,
       title: 'Comprador asignado',
       message:
-        'La solicitud número ' + orderId + ' ha sido asignada a uno de nuestros compradores. <br><br> <b>Detalles de la solicitud:</b><br><ul><li>Numero de la solicitud: ' + orderId + '</li><li>Fecha de generación: ' + createdAt + '</li><li>Productos/Servicios solicitados: ' + products.map(product => product.product).join(', ') + '</li></ul><br>Puede acceder a su solicitud y seguir su progreso en http://www.centralmarket.com.ar.<br><br>Si tiene alguna consulta, dejar la misma en la parte de <b>Preguntas</b> de la solicitud.<br>Muchas gracias.',
+        'La solicitud número ' + orderId + ' ha sido asignada a uno de nuestros compradores. <br><br> <b>Detalles de la solicitud:</b><br><ul><li>Numero de la solicitud: ' + orderId + '</li><li>Fecha de generación: ' + createdAt + '</li></ul><br>Puede acceder a su solicitud y seguir su progreso en http://www.centralmarket.com.ar.<br><br>Si tiene alguna consulta, dejar la misma en la parte de <b>Preguntas</b> de la solicitud.<br>Muchas gracias.',
       order_url: 'https://central-market.vercel.app/app/orders/' + orderId
     },
     from: 'verify@em9140.centralmarket.com.ar'

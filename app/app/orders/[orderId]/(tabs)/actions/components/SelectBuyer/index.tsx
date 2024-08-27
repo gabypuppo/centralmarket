@@ -90,7 +90,7 @@ export default async function SelectBuyer({ order }: SelectBuyerProps) {
 
     if (!order.id || !order.createdBy || !assignedBuyerId) return
     
-    await sendMailBuyerSelectedAction(order.id, order.createdBy, assignedBuyerId)
+    await sendMailBuyerSelectedAction(order.id, order.createdBy, assignedBuyerId, order.createdAt.toISOString())
 
     revalidatePath(`/${order.id}/actions`)
   }
