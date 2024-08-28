@@ -13,8 +13,9 @@ export default async function Page({ params }: { params: { token: string } }) {
 
   try {
     const token = params.token
+    console.log(token)
     const isValidToken = await validateVerificationToken(user.id, token)
-
+    console.log(isValidToken)
     if (isValidToken) verifyUser(user.id)
     return (
       <div className="flex h-screen">
