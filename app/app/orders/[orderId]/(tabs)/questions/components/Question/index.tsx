@@ -2,8 +2,9 @@ import { auth } from '@/auth'
 import { Button } from '@/components/ui/Button'
 import { Label } from '@/components/ui/Label'
 import { Textarea } from '@/components/ui/TextArea'
-import { editQuestion, type OrderQuestion } from '@/db/orders'
+import { editQuestion, getOrderById, type OrderQuestion } from '@/db/orders'
 import { getUserById } from '@/db/users'
+import { sendMailNewQuestionAction } from '@/utils/actions'
 import { UserIcon } from 'assets/icons'
 import { revalidatePath } from 'next/cache'
 
@@ -27,6 +28,12 @@ export default async function Question({ question }: QuestionProps) {
       id: question.id,
       answer
     })
+
+    const order = await getOrderById(question.orderId)
+
+    if (!order || !order.createdBy || !order.assignedBuyerId) return
+
+    await sendMailNewQuestionAction(question.orderId, order.createdBy, order.assignedBuyerId)
 
     revalidatePath(`/${question.orderId}/questions`)
   }

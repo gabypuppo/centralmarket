@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/Button'
 import { useOrderContext } from '@/contexts/OrderContext'
-import { updateOrderAction } from '@/utils/actions'
+import { sendMailOrderArrivedAction, updateOrderAction } from '@/utils/actions'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
@@ -24,6 +24,9 @@ export default function ConfirmArrivalButton() {
       console.error(err)
     }).finally(() => {
       setIsUploading(false)
+      if (orderData.createdBy && orderData.assignedBuyerId && orderData.createdAt && orderData.deliveryPointId) {
+        sendMailOrderArrivedAction(orderData.id, orderData.createdBy, orderData.assignedBuyerId, orderData.createdAt)
+      }
     })
   }
 

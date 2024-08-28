@@ -21,7 +21,7 @@ export const sendMailBuyerSelected = async (
   orderId: number,
   createdBy: number,
   assignedBuyerId: number,
-  createdAt: string
+  createdAt: Date
 ) => {
   const user = await getMailWithUserId(createdBy)
   const buyer = await getMailWithUserId(assignedBuyerId)
@@ -40,7 +40,7 @@ export const sendMailBuyerSelected = async (
       subject: 'Comprador asignado - Solicitud #' + orderId,
       title: 'Comprador asignado',
       message:
-        'La solicitud número ' + orderId + ' ha sido asignada a uno de nuestros compradores. <br><br> <b>Detalles de la solicitud:</b><br><ul><li>Numero de la solicitud: ' + orderId + '</li><li>Fecha de generación: ' + createdAt + '</li></ul><br>Puede acceder a su solicitud y seguir su progreso en http://www.centralmarket.com.ar.<br><br>Si tiene alguna consulta, dejar la misma en la parte de <b>Preguntas</b> de la solicitud.<br>Muchas gracias.',
+        'La solicitud número ' + orderId + ' te ha sido asignada. <br><br> <b>Detalles de la solicitud:</b><br><ul><li>Numero de la solicitud: ' + orderId + '</li><li>Fecha de generación: ' + createdAt + '</li></ul><br>Puede acceder a su solicitud y seguir su progreso en http://www.centralmarket.com.ar.<br><br>Si tiene alguna consulta, dejar la misma en la parte de <b>Preguntas</b> de la solicitud.<br>',
       order_url: 'https://central-market.vercel.app/app/orders/' + orderId
     },
     from: 'verify@em9140.centralmarket.com.ar'
@@ -52,8 +52,8 @@ export const sendMailBuyerSelected = async (
     dynamicTemplateData: {
       subject: 'El pedido #' + orderId + ' tiene un comprador asignado',
       title: 'Comprador asignado',
-      message:
-        'Se ha asignado un comprador al pedido. Puedes ver los detalles en el siguiente link',
+      message: 
+        'La solicitud número ' + orderId + ' ha sido asignada a uno de nuestros compradores. <br><br> <b>Detalles de la solicitud:</b><br><ul><li>Numero de la solicitud: ' + orderId + '</li><li>Fecha de generación: ' + createdAt + '</li></ul><br>Puede acceder a su solicitud y seguir su progreso en http://www.centralmarket.com.ar.<br><br>Si tiene alguna consulta, dejar la misma en la parte de <b>Preguntas</b> de la solicitud.<br>',
       order_url: 'https://central-market.vercel.app/app/orders/' + orderId
     },
     from: 'verify@em9140.centralmarket.com.ar'
@@ -88,6 +88,33 @@ export const sendMailBudgetApproved = async ( orderId: number, assignedBuyerId: 
 
 }
 
+export const sendMailOrderArrived = async (orderId: number, createdBy: number, assignedBuyerId: number, createdAt: Date) => {
+    const user = await getMailWithUserId(createdBy)
+    const buyer = await getMailWithUserId(assignedBuyerId)
+    const emailUser = user?.email
+    const emailBuyer = buyer?.email
+    
+    if (!emailUser || !emailBuyer) {
+        console.error('No se pudo enviar el mail')
+        return
+    }
+
+    const msg: MailDataRequired = {
+        to: emailUser,
+        templateId: 'd-0cc0d2be10f148ceb57719ca567b20c1',
+        dynamicTemplateData: {
+        subject: 'Confirmación de Entrega de la Solicitud #' + orderId,
+          title: 'Confirmación de Entrega de la Solicitud #' + orderId,
+          message: 'Los materiales correspondientes a la solicitud' + orderId + ' han sido entregados exitosamente. <br> Detalles de la entrega: <br> <ul><li>Fecha de entrega: ' + createdAt + '</li></ul><br>Puede acceder a su solicitud y seguir su progreso en http://www.centralmarket.com.ar.<br><br>Si tiene alguna consulta, dejar la misma en la parte de <b>Preguntas</b> de la solicitud.<br>',
+        order_url: 'https://central-market.vercel.app/app/orders/' + orderId
+        },
+        from: 'verify@em9140.centralmarket.com.ar'
+    }
+
+    await sendEmail(msg)
+
+}
+
 export const sendMailNewQuestion = async (orderId: number, createdBy: number, assignedBuyerId: number) => {
     const user = await getMailWithUserId(createdBy)
     const buyer = await getMailWithUserId(assignedBuyerId)
@@ -103,9 +130,9 @@ export const sendMailNewQuestion = async (orderId: number, createdBy: number, as
         to: emailUser,
         templateId: 'd-0cc0d2be10f148ceb57719ca567b20c1',
         dynamicTemplateData: {
-        subject: 'Nueva pregunta para el pedido #' + orderId,
-        title: 'Nueva pregunta',
-        message: 'Se ha realizado una nueva pregunta en tu pedido',
+        subject: 'Nueva pregunta/respuesta para el pedido #' + orderId,
+        title: 'Nueva pregunta/respuesta',
+        message: 'Se ha realizado una nueva pregunta/respuesta en tu pedido',
         order_url: 'https://central-market.vercel.app/app/orders/' + orderId
         },
         from: 'verify@em9140.centralmarket.com.ar'
@@ -115,9 +142,9 @@ export const sendMailNewQuestion = async (orderId: number, createdBy: number, as
         to: emailBuyer,
         templateId: 'd-0cc0d2be10f148ceb57719ca567b20c1',
         dynamicTemplateData: {
-        subject: 'Nueva pregunta para el pedido #' + orderId,
-        title: 'Nueva pregunta',
-        message: 'Se ha realizado una nueva pregunta en tu pedido',
+        subject: 'Nueva pregunta/respuesta para el pedido #' + orderId,
+        title: 'Nueva pregunta/respuesta',
+        message: 'Se ha realizado una nueva pregunta/respuesta en tu pedido',
         order_url: 'https://central-market.vercel.app/app/orders/' + orderId
         },
         from: 'verify@em9140.centralmarket.com.ar'
@@ -176,7 +203,7 @@ export const sendMailOrderCreated = async (
         dynamicTemplateData: {
         subject: 'Solicitud generada - #' + orderId,
         title: 'Solicitud generada #' + orderId,
-        message: 'Estimado cliente,<br> La solicitud #' + orderId + ' ha sido generada exitosamente. <br><b>Detalles de la solicitud:</b><br><ul><li>Numero de la solicitud: ' + orderId + '</li><li>Fecha de generación: ' + createdAt + '</li><li>Productos/Servicios solicitados: ' + products.map(product => product.product).join(', ') + '</li></ul><br>Puede acceder a su solicitud y seguir su progreso en http://www.centralmarket.com.ar.<br><br>Si tiene alguna consulta, dejar la misma en la parte de <b>Preguntas</b> de la solicitud.<br>Muchas gracias.',
+        message: 'Estimado cliente,<br> La solicitud #' + orderId + ' ha sido generada exitosamente. <br><b>Detalles de la solicitud:</b><br><ul><li>Numero de la solicitud: ' + orderId + '</li><li>Fecha de generación: ' + createdAt + '</li><li>Productos/Servicios solicitados: ' + products.map(product => product.product).join(', ') + '</li></ul><br>Puede acceder a su solicitud y seguir su progreso en http://www.centralmarket.com.ar.<br><br>Si tiene alguna consulta, dejar la misma en la parte de <b>Preguntas</b> de la solicitud.<br>',
         order_url: 'https://central-market.vercel.app/app/orders/' + orderId
         },
         from: 'verify@em9140.centralmarket.com.ar'
@@ -409,7 +436,9 @@ export const sendMailBudgetsToRewiew = async (
 export const sendMailOrderInformationComplete = async (
   orderId: number,
   createdBy: number,
-  assignedBuyerId: number
+  assignedBuyerId: number,
+  createdAt: Date,
+  products: OrderProduct[]
 ) => {
   const user = await getMailWithUserId(createdBy)
   const buyer = await getMailWithUserId(assignedBuyerId)
@@ -425,9 +454,9 @@ export const sendMailOrderInformationComplete = async (
     to: emailBuyer,
     templateId: 'd-0cc0d2be10f148ceb57719ca567b20c1',
     dynamicTemplateData: {
-      subject: 'Información del pedido completada',
-      title: 'Información del pedido completada',
-      message: 'La información del pedido ha sido completada',
+      subject: 'Solicitud #' + orderId + 'confirmada',
+      title: 'Solicitud #' + orderId + 'confirmada',
+      message: 'La solicitud #' + orderId + ' ha sido confirmada y esta en proceso de cotización.<br>Detalles de la solicitud:<br><ul><li>Número de la solicitud: ' + orderId + '</li><li>Fecha de generación: ' + createdAt + '</li><li>Productos/Servicios solicitados: ' + products.map(product => product.product).join(', ') + '</li></ul><br>Puede acceder a su solicitud y seguir su progreso en http://www.centralmarket.com.ar.<br><br>Si tiene alguna consulta, dejar la misma en la parte de <b>Preguntas</b> de la solicitud.<br>',
       order_url: 'https://central-market.vercel.app/app/orders/' + orderId
     },
     from: 'verify@em9140.centralmarket.com.ar'
@@ -464,9 +493,9 @@ export const sendMailOrderInformationIncomplete = async (
     to: emailUser,
     templateId: 'd-0cc0d2be10f148ceb57719ca567b20c1',
     dynamicTemplateData: {
-      subject: 'Nueva pregunta para el pedido #' + orderId,
-      title: 'Nueva pregunta para el pedido #' + orderId,
-      message: 'Estimado cliente, <br> Nos gustaría informarle que hemos revisado su solicitud y hemos identificado que necesitamos información adicional para continuar con el proceso.<br><br> Detalle de la solicitud: <br><ul><li>Numero de la solicitud: ' + orderId + '</li><li>Fecha de generación: ' + createdAt + '</li></ul><br>Puede acceder a su solicitud y seguir su progreso en http://www.centralmarket.com.ar.<br><br>Si tiene alguna consulta, dejar la misma en la parte de <b>Preguntas</b> de la solicitud.<br>Muchas gracias.',
+      subject: 'La solicitud #' + orderId + ' tiene una nueva pregunta',
+      title: 'La solicitud #' + orderId + ' tiene una nueva pregunta',
+      message: '',
       order_url: 'https://central-market.vercel.app/app/orders/' + orderId
     },
     from: 'verify@em9140.centralmarket.com.ar'

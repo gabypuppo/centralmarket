@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/Button'
 import * as Dialog from '@/components/ui/AlertDialogComplete'
 import { revalidatePath } from 'next/cache'
-import { addHistory, updateOrder, type Order } from '@/db/orders'
+import { addHistory, getProductsByOrderId, updateOrder, type Order } from '@/db/orders'
 import { auth } from '@/auth'
 import { sendMailOrderInformationCompleteAction, sendMailOrderInformationIncompleteAction } from '@/utils/actions'
 
@@ -56,9 +56,11 @@ export default async function ValidateInfoDialog({ order }: ValidateInfoDialogPr
       modifiedBy: session?.user.organizationId === 1 ? 'Central Market' : 'Usuario'
     })
 
-    if (!order.id || !order.createdBy || !order.assignedBuyerId) return
+    const products = await getProductsByOrderId(order.id)
 
-    sendMailOrderInformationCompleteAction(order.id, order.createdBy, order.assignedBuyerId)
+    if (!order.id || !order.createdBy || !order.assignedBuyerId || !order.createdAt || !products) return
+
+    sendMailOrderInformationCompleteAction(order.id, order.createdBy, order.assignedBuyerId, order.createdAt, products)
 
     revalidatePath(`/${order.id}/actions`)
   }
