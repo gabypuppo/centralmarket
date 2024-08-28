@@ -30,7 +30,7 @@ export default async function ValidateInfoDialog({ order }: ValidateInfoDialogPr
       return
     }
 
-    await sendMailOrderInformationIncompleteAction(order.id, order.createdBy, order.createdAt.toISOString())
+    await sendMailOrderInformationIncompleteAction(order.id, order.createdBy, order.createdAt)
 
     revalidatePath(`/${order.id}/actions`) 
   }

@@ -108,7 +108,7 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
             res.id,
             user.id,
             products.map(p => ({ ...p, id: 0, orderId: res.id })),
-            new Date().toLocaleDateString()
+            new Date()
           )
         ])
       })

@@ -30,7 +30,7 @@ export default function ModifyShippingDateInput() {
           console.error('Missing order data')
           return
         }
-        sendMailModifyShippingDateAction(orderData.id, orderData.createdBy, orderData.createdAt.toISOString())
+        sendMailModifyShippingDateAction(orderData.id, orderData.createdBy, orderData.createdAt)
       })
       .catch((err) => {
         console.error(err)

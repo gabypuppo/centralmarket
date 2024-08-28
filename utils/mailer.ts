@@ -157,7 +157,7 @@ export const sendMailNewQuestion = async (orderId: number, createdBy: number, as
 export const sendMailModifyShippingDate = async (
     orderId: number,
     createdBy: number,
-    createdAt: string
+    createdAt: Date
     ) => {
     const user = await getMailWithUserId(createdBy)
     const emailUser = user?.email
@@ -187,7 +187,7 @@ export const sendMailOrderCreated = async (
     orderId: number,
     createdBy: number,
     products: OrderProduct[],
-    createdAt: string
+    createdAt: Date
     ) => {
     const user = await getMailWithUserId(createdBy)
     const emailUser = user?.email
@@ -316,7 +316,7 @@ export const sendMailOrderCancelled = async (
   orderId: number,
   createdBy: number,
   assignedBuyerId: number,
-  createdAt: string
+  createdAt: Date
 ) => {
   const user = await getMailWithUserId(createdBy)
   const buyer = await getMailWithUserId(assignedBuyerId)
@@ -376,7 +376,7 @@ export const sendMailGoBackToBudgetsInProgress = async (
   orderId: number,
   createdBy: number,
   assignedBuyerId: number,
-  createdAt: string
+  createdAt: Date
 ) => {
   const user = await getMailWithUserId(createdBy)
   const buyer = await getMailWithUserId(assignedBuyerId)
@@ -406,7 +406,7 @@ export const sendMailBudgetsToRewiew = async (
   orderId: number,
   createdBy: number,
   assignedBuyerId: number,
-  createdAt: string
+  createdAt: Date
 ) => {
   const user = await getMailWithUserId(createdBy)
   const buyer = await getMailWithUserId(assignedBuyerId)
@@ -479,7 +479,7 @@ export const sendMailOrderInformationComplete = async (
 export const sendMailOrderInformationIncomplete = async (
   orderId: number,
   createdBy: number,
-  createdAt: string,
+  createdAt: Date,
 ) => {
   const user = await getMailWithUserId(createdBy)
   const emailUser = user?.email

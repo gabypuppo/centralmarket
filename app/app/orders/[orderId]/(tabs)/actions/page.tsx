@@ -38,7 +38,7 @@ export default async function Page({ params }: PageProps) {
       modifiedBy: 'Central Market'
     })
     if (!order.id || !order.createdBy || !order.assignedBuyerId || !order.createdAt) return
-    await sendMailGoBackToBudgetsInProgressAction(order.id, order.createdBy, order.assignedBuyerId, order.createdAt.toISOString())
+    await sendMailGoBackToBudgetsInProgressAction(order.id, order.createdBy, order.assignedBuyerId, order.createdAt)
     redirect('budgets')
   }
   const { orderStatus } = order

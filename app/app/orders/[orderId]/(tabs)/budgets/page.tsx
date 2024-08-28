@@ -59,7 +59,7 @@ export default async function Page({ params }: PageProps) {
 
     if (!order.id || !order.createdBy || !order.assignedBuyerId || !order.createdAt ) return
 
-    sendMailBudgetsToRewiewAction(order.id, order.createdBy, order.assignedBuyerId, order.createdAt.toISOString())
+    sendMailBudgetsToRewiewAction(order.id, order.createdBy, order.assignedBuyerId, order.createdAt)
     revalidatePath(`/${orderId}/budgets`)
   }
 

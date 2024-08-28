@@ -31,10 +31,10 @@ export async function sendMailOrderArrivedAction(orderId: number, createdBy: num
   await sendMailOrderArrived(orderId, createdBy, assignedBuyerId, createdAt)
 }
 
-export async function sendMailModifyShippingDateAction(orderId: number, createdBy: number, createdAt: string) {
+export async function sendMailModifyShippingDateAction(orderId: number, createdBy: number, createdAt: Date) {
   await sendMailModifyShippingDate(orderId, createdBy, createdAt)
 }
-export async function sendMailOrderCreatedAction(orderId: number, createdBy: number, products: OrderProduct[], createdAt: string) {
+export async function sendMailOrderCreatedAction(orderId: number, createdBy: number, products: OrderProduct[], createdAt: Date) {
   await sendMailOrderCreated(orderId, createdBy, products, createdAt)
 }
 
@@ -46,25 +46,25 @@ export async function sendMailOrderRejectedAction(orderId: number, createdBy: nu
   await sendMailOrderRejected(orderId, createdBy, assignedBuyerId)
 }
 
-export async function sendMailOrderCancelledAction(orderId: number, createdBy: number, assignedBuyerId: number, createdAt: string) {
+export async function sendMailOrderCancelledAction(orderId: number, createdBy: number, assignedBuyerId: number, createdAt: Date) {
   await sendMailOrderCancelled(orderId, createdBy, assignedBuyerId, createdAt)
 }
 
 export async function sendMailValidationAction(userId: number, mail: string, firstName: string) {
   await sendMailValidation(userId, mail, firstName)
 }
-export async function sendMailGoBackToBudgetsInProgressAction(orderId: number, createdBy: number, assignedBuyerId: number, createdAt: string) {
+export async function sendMailGoBackToBudgetsInProgressAction(orderId: number, createdBy: number, assignedBuyerId: number, createdAt: Date) {
   await sendMailGoBackToBudgetsInProgress(orderId, createdBy, assignedBuyerId, createdAt)
 }
 
-export async function sendMailBudgetsToRewiewAction(orderId: number, createdBy: number, assignedBuyerId: number, createdAt: string) {
+export async function sendMailBudgetsToRewiewAction(orderId: number, createdBy: number, assignedBuyerId: number, createdAt: Date) {
   await sendMailBudgetsToRewiew(orderId, createdBy, assignedBuyerId, createdAt)
 }
 export async function sendMailOrderInformationCompleteAction(orderId: number, createdBy: number, assignedBuyerId: number, createdAt: Date, products: OrderProduct[]) {
   await sendMailOrderInformationComplete(orderId, createdBy, assignedBuyerId, createdAt, products)
 }
 
-export async function sendMailOrderInformationIncompleteAction(orderId: number, createdBy: number, createdAt: string) {
+export async function sendMailOrderInformationIncompleteAction(orderId: number, createdBy: number, createdAt: Date) {
   await sendMailOrderInformationIncomplete(orderId, createdBy, createdAt)
 }
 export async function createOrganizationAction(
