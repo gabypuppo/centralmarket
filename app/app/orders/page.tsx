@@ -41,7 +41,7 @@ export default async function Page({ searchParams }: any) {
       (a, b) => (a.createdAt?.getTime() ?? Date.now()) - (b.createdAt?.getTime() ?? Date.now())
     )
 
-  const ordersCSVData = await getOrdersCSVData()
+  const ordersCSVData = await getOrdersCSVData(!isCentralMarket ? organizationId! : undefined)
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-muted/40">
@@ -56,16 +56,15 @@ export default async function Page({ searchParams }: any) {
               : 'Visualiza todas tus solicitudes'}
           </p>
           <div className="flex content-between">
-            {!isCentralMarket ? (
+            {!isCentralMarket && (
               <Link
                 href={'orders/new'}
                 className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-min mt-6"
               >
                 CREAR SOLICITUD
               </Link>
-            ) : (
-              <DownloadCSV orders={ordersCSVData} />
             )}
+            <DownloadCSV orders={ordersCSVData} />
           </div>
         </div>
         <div className="grid gap-6 max-w-6xl w-full mx-auto">

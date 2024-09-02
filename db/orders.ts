@@ -375,8 +375,7 @@ export async function removeFile(fileId: number) {
 }
 
 export async function getOrdersCSVData(
-  where?: string,
-  status?: OrderStatus
+  organizationId?: number
 ) {
   const order = getTableColumns(orders)
   const organization = getTableColumns(organizations)
@@ -400,19 +399,7 @@ export async function getOrdersCSVData(
       
     })
     .from(orders)
-    .where(
-      and(
-        status ? like(orders.orderStatus, status) : undefined,
-        where
-          ? or(
-            ilike(orders.finalClient, `%${where}%`),
-            ilike(orders.finalAddress, `%${where}%`),
-            ilike(orders.notes, `%${where}%`),
-            ilike(organizations.name, `%${where}%`)
-          )
-          : undefined
-      )
-    )
+    .where(organizationId ? eq(orders.organizationId, organizationId) : undefined)
     .leftJoin(organizations, eq(orders.organizationId, organizations.id))
     .leftJoin(deliveryPoints, eq(orders.deliveryPointId, deliveryPoints.id))
     .leftJoin(orderProducts, eq(orders.id, orderProducts.orderId))
