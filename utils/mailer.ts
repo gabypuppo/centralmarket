@@ -508,6 +508,7 @@ export const sendRecoveryEmail = async (user: User) => {
   const token = await createVerificationToken(user.id)
 
   const otherMsg: MailDataRequired = {
+    templateId: 'd-0cc0d2be10f148ceb57719ca567b20c1',
     to: user.email!,
     from: 'verify@em9140.centralmarket.com.ar',
     subject: 'Recupera tu contraseña de CentralMarket',
