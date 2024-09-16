@@ -61,14 +61,12 @@ export function LoginForm({ action: signIn }: LoginFormProps) {
           className="mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
         />
       </div>
-      {error !== '' && (
-        <p className="text-xs flex flex-col items-center">
-          ¿Olvidaste tu contraseña?
-          <Link href="/auth/recover" className="font-semibold text-gray-800">
-            Recupérala aquí
-          </Link>
-        </p>
-      )}
+      <p className="text-xs flex flex-col items-center">
+        ¿Olvidaste tu contraseña?
+        <Link href="/auth/recover" className="font-semibold text-gray-800">
+          Recupérala aquí
+        </Link>
+      </p>
       <Button>Iniciar sesión</Button>
     </form>
   )

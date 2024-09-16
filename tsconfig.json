@@ -16,7 +16,8 @@
       "@/auth/*": ["auth/*"],
       "@/db": ["db/db"],
       "@/db/*": ["db/*"],
-      "@/contexts/*": ["contexts/*"]
+      "@/contexts/*": ["contexts/*"],
+      "@/assets/*": ["assets/*"]
     },
     "strict": true,
     "forceConsistentCasingInFileNames": true,
