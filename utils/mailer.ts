@@ -508,16 +508,10 @@ export const sendRecoveryEmail = async (user: User) => {
   const token = await createVerificationToken(user.id)
 
   const otherMsg: MailDataRequired = {
-    templateId: 'd-0cc0d2be10f148ceb57719ca567b20c1',
     to: user.email!,
     from: 'verify@em9140.centralmarket.com.ar',
     subject: 'Recupera tu contraseña de CentralMarket',
-    dynamicTemplateData: {
-      title: 'Recupera tu contraseña',
-      message: 'Hemos recibido una solicitud para cambiar tu contraseña.',
-      order_url: 'https://central-market.vercel.app/auth/recover/' + token + '?email=' + user.email,
-      confirmation_url: 'https://central-market.vercel.app/auth/recover/' + token + '?email=' + user.email
-    },
+    text: `Continua al siguiente link para cambiar tu contraseña: https://central-market.vercel.app/auth/recover/${token}?email=${user.email}`
   }
 
   await sendEmail(otherMsg)
