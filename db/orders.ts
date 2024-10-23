@@ -11,6 +11,7 @@ export const orders = pgTable('orders', {
   organizationId: integer('organization_id').notNull(),
   createdBy: integer('created_by'),
   assignedBuyerId: integer('assigned_buyer_id'),
+  title: varchar('title'),
   orderStatus: varchar('order_status').$type<OrderStatus>(),
   deliveryPointId: integer('delivery_point_id'),
   shippingMethod: varchar('shipping_method', { length: 64 }), // Crear tabla shipping methods
@@ -170,6 +171,7 @@ export async function createOrderWithProducts(
     Order,
     | 'organizationId'
     | 'createdBy'
+    | 'title'
     | 'deliveryPointId'
     | 'shippingMethod'
     | 'notes'
@@ -185,6 +187,7 @@ export async function createOrderWithProducts(
       .values({
         organizationId: orderPartial.organizationId,
         createdBy: orderPartial.createdBy,
+        title: orderPartial.title,
         assignedBuyerId: null,
         orderStatus: 'PENDING',
         selectedBudgetId: null,

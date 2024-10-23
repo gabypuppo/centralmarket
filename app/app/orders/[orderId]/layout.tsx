@@ -76,8 +76,13 @@ export default async function Layout({ params, children }: LayoutProps) {
             <CancelOrderButton />
             <IssueWithMyOrderButton />
           </div>
-          <span className='text-lg font-bold max-w-6xl w-full mx-auto'>
-            Pedido #{order.id}
+          <span className="text-lg font-bold max-w-6xl w-full mx-auto">
+            Pedido #{order.id}{' - '}
+            {order.title ? (
+              `${order.title}`
+            ) : (
+              <span className="text-gray-500 font-semibold">(Sin título)</span>
+            )}
           </span>
           <div className="flex gap-6 max-w-6xl w-full mx-auto justify-center md:justify-normal">
             <div className="flex flex-row justify-evenly ">

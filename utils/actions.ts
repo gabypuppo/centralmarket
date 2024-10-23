@@ -94,6 +94,7 @@ export async function createOrderWithProductsAction(
     Order,
     | 'organizationId'
     | 'createdBy'
+    | 'title'
     | 'deliveryPointId'
     | 'shippingMethod'
     | 'notes'

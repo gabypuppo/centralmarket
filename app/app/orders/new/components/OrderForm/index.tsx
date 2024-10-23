@@ -32,6 +32,7 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
   const router = useRouter()
   const { user } = useUser()
 
+  const [title, setTitle] = useState('')
   const [products, setProducts] = useState<PartialOrderProduct[]>([{ ...PRODUCT_TEMPLATE }])
   const [deliveryPointId, setDeliveryPointId] = useState<number>()
   const [shippingMethod, setShippingMethod] = useState<string>()
@@ -89,7 +90,8 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
       shippingDate: new Date(shippingDateString),
       notes,
       finalClient,
-      finalAddress
+      finalAddress,
+      title
     }, products)
       .then((res) => {
         const formData = new FormData()
@@ -135,7 +137,17 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
         { shippingDateString && isShippingDateInvalid && <p className="text-xs text-red-500">La fecha de entrega debe ser un dia habil y al menos 5 días en el futuro</p> }
         <div className="flex flex-col gap-2">
           <span className="text-xs font-medium">Los campos con * son obligatorios</span>
-
+          <label className="text-xs font-medium flex flex-col gap-2 items-start">
+            Titulo
+            <Input
+              type="text"
+              className="font-normal"
+              onChange={(e) => {
+                const value = e.target.value
+                setTitle(value)
+              }}
+            />
+          </label>
           <div className="flex gap-4 flex-wrap">
             <label className="text-xs font-medium flex flex-col gap-2 items-start">
               Fecha de Entrega*

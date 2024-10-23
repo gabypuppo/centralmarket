@@ -92,7 +92,7 @@ export default async function Page({ searchParams }: any) {
                     <TableCell>
                       <div className="flex flex-col gap-1 flex-1 min-w-20">
                         <h4 className="font-semibold">#{order.id}</h4>
-                        <p className="truncate">{order.notes}</p>
+                        <h5 className="truncate max-w-48">{order.title || <span className='text-gray-500 font-semibold'>(Sin titulo)</span>}</h5>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -158,9 +158,9 @@ export default async function Page({ searchParams }: any) {
                     {sortOrders(ordersByOrganization).map((order, index) => (
                       <TableRow key={index}>
                         <TableCell>
-                          <div className="flex flex-col gap-1 flex-1 min-w-20">
+                          <div className="flex flex-col gap-1 flex-1 min-w-20 max-w-32">
                             <h4 className="font-semibold">#{order.id}</h4>
-                            <p className="truncate">{order.notes}</p>
+                            <h5 className="truncate">{order.title || <span className='text-gray-500 font-semibold'>(Sin título)</span>}</h5>
                           </div>
                         </TableCell>
                         {isCentralMarket && (

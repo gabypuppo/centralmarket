@@ -134,7 +134,7 @@ export default async function Page() {
                     <TableCell>
                       <div className="flex flex-col gap-1 flex-1 min-w-20">
                         <h4 className="font-semibold">#{order.id}</h4>
-                        <p className="truncate">{order.notes}</p>
+                        <h5 className="truncate max-w-48">{order.title || <span className='text-gray-500 font-semibold'>(Sin titulo)</span>}</h5>
                       </div>
                     </TableCell>
                     <TableCell>
