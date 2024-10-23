@@ -15,6 +15,7 @@ export default function DownloadCSV({ orders }: DownloadCSVProps) {
   const csvFile = useMemo(() => {
     const mappedOrders = orders.map((order) => ({
       Solicitud: order.id,
+      'Título': order.title,
       Estado: order.orderStatus && getFormattedLabel(order.orderStatus),
       Cliente: order.organization?.name,
       'Destino Final': order.deliveryPoint?.name,
