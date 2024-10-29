@@ -1,7 +1,7 @@
 'server only'
 import { alias, boolean, integer, jsonb, pgTable, real, serial, text, timestamp, varchar } from 'drizzle-orm/pg-core'
 import { db } from './db'
-import { desc, eq, or, and, getTableColumns, ilike, like } from 'drizzle-orm'
+import { desc, eq, or, and, getTableColumns, ilike, like, gte, lte, sum } from 'drizzle-orm'
 import { del, put } from '@vercel/blob'
 import { deliveryPoints, type Organization, organizations } from './organizations'
 import { users } from './users'
@@ -411,4 +411,18 @@ export async function getOrdersCSVData(
     .leftJoin(buyers, eq(order.assignedBuyerId, buyers.id))
     .leftJoin(orderCategories, eq(order.categoryId, orderCategories.id))
     .orderBy(order.id)
+}
+
+export async function getExpensesByUserId(userId: number, leftEndDate?: Date, rightEndDate?: Date) {
+  return await db
+    .select({ subtotal: sum(orders.finalBudgetSubtotal) })
+    .from(orders)
+    .where(
+      and(
+        eq(orders.assignedBuyerId, userId),
+        eq(orders.orderStatus, 'COMPLETED'),
+        leftEndDate ? gte(orders.approvedAt, leftEndDate) : undefined,
+        rightEndDate ? lte(orders.approvedAt, rightEndDate) : undefined
+      )
+    )
 }
