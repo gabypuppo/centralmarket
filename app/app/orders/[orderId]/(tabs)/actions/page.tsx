@@ -12,6 +12,9 @@ import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
 import { sendMailGoBackToBudgetsInProgressAction } from '@/utils/actions'
 import ModifyOrderParamInput from './components/ModifyOrderPropertyInput'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
+import { revalidatePath } from 'next/cache'
 
 interface PageProps {
   params: {
@@ -81,17 +84,32 @@ export default async function Page({ params }: PageProps) {
             case 'BUDGETS_TO_REVIEW':
               return <p>Por favor, espera a que el cliente revise los presupuestos.</p>
             case 'BUDGETS_APPROVED':
-              return(
+              return (
                 <>
                   <form action={goBackToBudgetsInProgress}>
-                    <Button
-                      type="submit"
-                      className="mt-6"
-                    >
+                    <Button type="submit" className="mt-6">
                       Volver a Presupuestos en Progreso
                     </Button>
                   </form>
-                  <NextOrderStateDialog>Avanzar a Compra en Progreso</NextOrderStateDialog>
+                  <form
+                    className="flex gap-2 items-end"
+                    action={async (formData) => {
+                      'use server'
+                      const subtotal = formData.get('finalBudget') as string
+                      if (Number.isNaN(parseInt(subtotal))) return
+                      await updateOrder({ id: order.id, finalBudgetSubtotal: parseInt(subtotal) })
+                      revalidatePath(`/${order.id}/actions`)
+                    }}
+                  >
+                    <Label className="flex flex-col gap-2">
+                      Subtotal de Presupuesto
+                      <Input type="number" name="finalBudget" placeholder={order.finalBudgetSubtotal?.toString() ?? 'Sin Cargar'} />
+                    </Label>
+                    <Button type="submit">Cargar</Button>
+                  </form>
+                  <NextOrderStateDialog disabled={!order.finalBudgetSubtotal}>
+                    Avanzar a Compra en Progreso
+                  </NextOrderStateDialog>
                 </>
               ) 
             case 'PURCHASE_IN_PROGRESS':

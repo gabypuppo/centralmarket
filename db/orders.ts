@@ -29,6 +29,7 @@ export const orders = pgTable('orders', {
   budgetsObservations: varchar('budgets_observations'),
   remittance: varchar('remittance'),
   invoice: varchar('invoice'),
+  finalBudgetSubtotal: integer('final_budget_subtotal'),
   budgetedAt: timestamp('budgeted_at'),
   approvedAt: timestamp('approved_at')
 })
