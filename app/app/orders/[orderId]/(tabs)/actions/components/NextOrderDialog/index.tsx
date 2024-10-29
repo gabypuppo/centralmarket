@@ -11,8 +11,9 @@ import { useRouter } from 'next/navigation'
 
 interface NextOrderStateDialogProps {
   children: React.ReactNode
+  disabled?: boolean
 }
-export default function NextOrderStateDialog({ children }: NextOrderStateDialogProps) {
+export default function NextOrderStateDialog({ children, disabled = false }: NextOrderStateDialogProps) {
   const router = useRouter()
   const { user } = useUser()
   const { contextOrderData: orderData, setContextOrderData } = useOrderContext()
@@ -53,7 +54,7 @@ export default function NextOrderStateDialog({ children }: NextOrderStateDialogP
   return (
     <Dialog.Root open={open} onOpenChange={setIsOpen}>
       <Dialog.Trigger asChild>
-        <Button className="mt-4">{children}</Button>
+        <Button className="mt-4" disabled={disabled}>{children}</Button>
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black bg-opacity-50" />
