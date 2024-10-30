@@ -3,23 +3,23 @@ import { Card, CardHeader, CardContent } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import SignOutButton from '@/components/auth/SignOutButton'
-import { getExpensesByUserId } from '@/db/orders'
+import { getAnalyticsByUserId } from '@/db/orders'
 
 export default async function Page() {
   const session = await auth()
   if (!session) return
 
   const currentDate = new Date()
-  const weeklyExpenses = await getExpensesByUserId(
-    session?.user.id,
+  const weeklyAnalytics = await getAnalyticsByUserId(
+    session.user.id,
     new Date(new Date().setDate(currentDate.getDate() - 7))
   )
-  const monthlyExpenses = await getExpensesByUserId(
-    session?.user.id,
+  const monthlyAnalytics = await getAnalyticsByUserId(
+    session.user.id,
     new Date(new Date().setMonth(currentDate.getMonth() - 1))
   )
-  const yearlyExpenses = await getExpensesByUserId(
-    session?.user.id,
+  const yearlyAnalytics = await getAnalyticsByUserId(
+    session.user.id,
     new Date(new Date().setFullYear(currentDate.getFullYear() - 1))
   )
 
@@ -68,21 +68,40 @@ export default async function Page() {
         <CardHeader>
           <h2 className="text-xl font-bold">Reporte de Gastos</h2>
         </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <h3 className="flex flex-col">
-            Gastos de la Semana:
-            <span className="text-lg font-bold">${weeklyExpenses[0].subtotal ?? 0} ARS</span>
-          </h3>
-
-          <h3 className="flex flex-col">
-            Gastos del Mes:
-            <span className="text-lg font-bold">${monthlyExpenses[0].subtotal ?? 0} ARS</span>
-          </h3>
-
-          <h3 className="flex flex-col">
-            Gastos del Año:
-            <span className="text-lg font-bold">${yearlyExpenses[0].subtotal ?? 0} ARS</span>
-          </h3>
+        <CardContent className="flex gap-4 w-fit flex-wrap">
+          <Card className="flex flex-col gap-2 p-3">
+            <h3>
+              <span className="font-semibold">Gastos de la Semana: </span>
+              {weeklyAnalytics.reduce((sum, val) => sum + val.count, 0)} Pedido(s)
+            </h3>
+            {weeklyAnalytics.map((data, i) => (
+              <span key={i} className="text-lg font-bold">
+                {data.currency}${data.subtotal ?? 0}
+              </span>
+            ))}
+          </Card>
+          <Card className="flex flex-col gap-2 p-3">
+            <h3>
+              <span className="font-semibold">Gastos del Mes: </span>
+              {monthlyAnalytics.reduce((sum, val) => sum + val.count, 0)} Pedido(s)
+            </h3>
+            {monthlyAnalytics.map((data, i) => (
+              <span key={i} className="text-lg font-bold">
+                {data.currency}${data.subtotal ?? 0}
+              </span>
+            ))}
+          </Card>
+          <Card className="flex flex-col gap-2 p-3">
+            <h3>
+              <span className="font-semibold">Gastos del Año: </span>
+              {yearlyAnalytics.reduce((sum, val) => sum + val.count, 0)} Pedido(s)
+            </h3>
+            {yearlyAnalytics.map((data, i) => (
+              <span key={i} className="text-lg font-bold">
+                {data.currency}${data.subtotal ?? 0}
+              </span>
+            ))}
+          </Card>
         </CardContent>
       </Card>
     </div>
