@@ -29,7 +29,8 @@ export default function NextOrderStateDialog({ children, disabled = false }: Nex
     setIsUploading(true)
     updateOrderAction({
       ...orderData,
-      orderStatus: newStatus
+      orderStatus: newStatus,
+      approvedAt: newStatus === 'COMPLETED' ? new Date() : undefined
     })
       .then((res) => {
         setContextOrderData(res[0])
