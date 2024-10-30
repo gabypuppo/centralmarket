@@ -15,6 +15,7 @@ import ModifyOrderParamInput from './components/ModifyOrderPropertyInput'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { revalidatePath } from 'next/cache'
+import Select from '@/components/ui/Select'
 
 interface PageProps {
   params: {
@@ -41,7 +42,12 @@ export default async function Page({ params }: PageProps) {
       modifiedBy: 'Central Market'
     })
     if (!order.id || !order.createdBy || !order.assignedBuyerId || !order.createdAt) return
-    await sendMailGoBackToBudgetsInProgressAction(order.id, order.createdBy, order.assignedBuyerId, order.createdAt)
+    await sendMailGoBackToBudgetsInProgressAction(
+      order.id,
+      order.createdBy,
+      order.assignedBuyerId,
+      order.createdAt
+    )
     redirect('budgets')
   }
   const { orderStatus } = order
@@ -95,23 +101,47 @@ export default async function Page({ params }: PageProps) {
                     className="flex gap-2 items-end"
                     action={async (formData) => {
                       'use server'
-                      const subtotal = formData.get('finalBudget') as string
+                      const subtotal = formData.get('subtotal') as string
+                      const currency = formData.get('currency') as string
                       if (Number.isNaN(parseInt(subtotal))) return
-                      await updateOrder({ id: order.id, finalBudgetSubtotal: parseInt(subtotal) })
+                      await updateOrder({
+                        id: order.id,
+                        finalBudgetSubtotal: parseInt(subtotal),
+                        finalBudgetCurrency: currency
+                      })
                       revalidatePath(`/${order.id}/actions`)
                     }}
                   >
                     <Label className="flex flex-col gap-2">
                       Subtotal de Presupuesto
-                      <Input type="number" name="finalBudget" placeholder={order.finalBudgetSubtotal?.toString() ?? 'Sin Cargar'} />
+                      <Input
+                        type="number"
+                        name="subtotal"
+                        placeholder={order.finalBudgetSubtotal?.toString() ?? 'Sin Cargar'}
+                        required
+                      />
                     </Label>
+                    <Select
+                      required
+                      name="currency"
+                      value={order.finalBudgetCurrency ?? undefined}
+                      options={[
+                        {
+                          items: [
+                            { label: 'ARS', value: 'ARS' },
+                            { label: 'USD', value: 'USD' }
+                          ]
+                        }
+                      ]}
+                      placeholder="Moneda"
+                    />
                     <Button type="submit">Cargar</Button>
                   </form>
                   <NextOrderStateDialog disabled={!order.finalBudgetSubtotal}>
                     Avanzar a Compra en Progreso
                   </NextOrderStateDialog>
                 </>
-              ) 
+              )
             case 'PURCHASE_IN_PROGRESS':
               return <NextOrderStateDialog>Completar Compra</NextOrderStateDialog>
             case 'PURCHASE_COMPLETED':
@@ -127,17 +157,15 @@ export default async function Page({ params }: PageProps) {
               return (
                 <>
                   <p>Confirmación del cliente: {order.isArrived ? 'Si' : 'No'}</p>
-                  <ModifyOrderParamInput order={order} property="remittance" label="N° Remito"/>
-                  <ModifyOrderParamInput order={order} property="invoice" label="N° Factura"/>
+                  <ModifyOrderParamInput order={order} property="remittance" label="N° Remito" />
+                  <ModifyOrderParamInput order={order} property="invoice" label="N° Factura" />
                 </>
               )
             case 'CANCELLED':
               return <span>El pedido ha sido cancelado.</span>
             case 'REJECTED':
               return (
-                <p>
-                  Por favor, revisa tu correo electrónico para más detalles sobre la disputa.
-                </p>
+                <p>Por favor, revisa tu correo electrónico para más detalles sobre la disputa.</p>
               )
             default:
               return <></>
