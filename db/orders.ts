@@ -1,7 +1,7 @@
 'server only'
 import { alias, boolean, integer, jsonb, pgTable, real, serial, text, timestamp, varchar } from 'drizzle-orm/pg-core'
 import { db } from './db'
-import { desc, eq, or, and, getTableColumns, ilike, like, gte, lte, sum } from 'drizzle-orm'
+import { desc, eq, or, and, getTableColumns, ilike, like, gte, lte, sum, count } from 'drizzle-orm'
 import { del, put } from '@vercel/blob'
 import { deliveryPoints, type Organization, organizations } from './organizations'
 import { users } from './users'
@@ -30,6 +30,7 @@ export const orders = pgTable('orders', {
   remittance: varchar('remittance'),
   invoice: varchar('invoice'),
   finalBudgetSubtotal: integer('final_budget_subtotal'),
+  finalBudgetCurrency: varchar('final_budget_currency'),
   budgetedAt: timestamp('budgeted_at'),
   approvedAt: timestamp('approved_at')
 })
@@ -413,9 +414,9 @@ export async function getOrdersCSVData(
     .orderBy(order.id)
 }
 
-export async function getExpensesByUserId(userId: number, leftEndDate?: Date, rightEndDate?: Date) {
+export async function getAnalyticsByUserId(userId: number, leftEndDate?: Date, rightEndDate?: Date) {
   return await db
-    .select({ subtotal: sum(orders.finalBudgetSubtotal) })
+    .select({ currency: orders.finalBudgetCurrency , subtotal: sum(orders.finalBudgetSubtotal), count: count(orders.finalBudgetCurrency) })
     .from(orders)
     .where(
       and(
@@ -425,4 +426,6 @@ export async function getExpensesByUserId(userId: number, leftEndDate?: Date, ri
         rightEndDate ? lte(orders.approvedAt, rightEndDate) : undefined
       )
     )
+    .groupBy(orders.finalBudgetCurrency)
+    .orderBy(orders.finalBudgetCurrency)
 }
