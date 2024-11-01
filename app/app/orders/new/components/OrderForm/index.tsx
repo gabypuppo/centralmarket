@@ -37,7 +37,6 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
   const [deliveryPointId, setDeliveryPointId] = useState<number>()
   const [shippingMethod, setShippingMethod] = useState<string>()
   const [shippingDateString, setShippingDateString] = useState<string>()
-  const [notes, setNotes] = useState<string>('')
   const [isUploading, setIsUploading] = useState(false)
   const [finalClient, setFinalClient] = useState('')
   const [finalAddress, setFinalAddress] = useState('')
@@ -88,7 +87,7 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
       deliveryPointId: deliveryPointId,
       shippingMethod: shippingMethod,
       shippingDate: new Date(shippingDateString),
-      notes,
+      notes: '',
       finalClient,
       finalAddress,
       title
@@ -109,7 +108,9 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
           sendMailOrderCreatedAction(
             res.id,
             user.id,
-            products.map(p => ({ ...p, id: 0, orderId: res.id })),
+            products.map(p => ({
+              ...p, id: 0, orderId: res.id
+            })),
             new Date()
           )
         ])
