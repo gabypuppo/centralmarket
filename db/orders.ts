@@ -38,7 +38,7 @@ export type Order = typeof orders.$inferSelect
 const orderProducts = pgTable('order_products', {
   id: serial('id').primaryKey(),
   orderId: integer('order_id').notNull(),
-  product: varchar('product', { length: 64 }),
+  product: varchar('product', { length: 255 }),
   quantity: real('quantity'),
   quantityUnit: varchar('quantity_unit', { length: 16 }),
   estimatedCost: real('estimated_cost'),
