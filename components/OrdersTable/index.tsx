@@ -2,7 +2,7 @@
 import React, { useMemo, useState } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/Table'
 import { Badge } from '../ui/Badge'
-import { Order } from '@/db/orders'
+import { type Order } from '@/db/orders'
 import { Button } from '@/components/ui/Button'
 import { OrderStatusEnum } from '@/utils/enums'
 import { getFormattedColors, getFormattedLabel } from '@/app/app/orders/utils'
@@ -10,7 +10,7 @@ import { SortAscIcon, SortDescIcon } from 'lucide-react'
 import Link from 'next/link'
 import SearchBar from '@/components/SearchBar'
 import StatusSelect from '@/components/StatusSelect'
-import { Organization } from '@/db/organizations'
+import { type Organization } from '@/db/organizations'
 
 interface Props {
   orders: (Order & { organization?: Organization | null })[]

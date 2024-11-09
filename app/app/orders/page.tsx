@@ -1,8 +1,6 @@
 import { auth } from '@/auth'
 import { getOrdersCentralMarket, getOrdersByBuyer, getOrdersByOrganization, getOrdersByUser, type Order, getOrdersCSVData } from '@/db/orders'
 import Link from 'next/link'
-import SearchBar from '../../../components/SearchBar'
-import StatusSelect from '../../../components/StatusSelect'
 import DownloadCSV from './components/DownloadCSV'
 import OrdersTable from '@/components/OrdersTable'
 
