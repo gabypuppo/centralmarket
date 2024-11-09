@@ -3,7 +3,11 @@ import { useState, useEffect, useCallback } from 'react'
 import { Input } from '@/components/ui/Input'
 import { usePathname, useRouter } from 'next/navigation'
 
-function SearchBar() {
+interface Props {
+  id?: number | string
+}
+
+function SearchBar({ id }: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const [searchTerm, setSearchTerm] = useState<string>('')
@@ -14,9 +18,9 @@ function SearchBar() {
       const newTimeoutId = setTimeout(() => {
         const params = new URLSearchParams(window.location.search)
         if (term) {
-          params.set('search', term)
+          params.set(`search${id ?? ''}`, term)
         } else {
-          params.delete('search')
+          params.delete(`search${id ?? ''}`)
         }
         params.delete('page')
 
@@ -25,17 +29,17 @@ function SearchBar() {
 
       setTimeoutId(newTimeoutId)
     },
-    [pathname, router]
+    [pathname, router, id]
   )
 
   useEffect(() => {
     // check if param exist and set in search term
     const params = new URLSearchParams(window.location.search)
-    const search = params.get('search')
+    const search = params.get(`search${id ?? ''}`)
     if (search) {
       setSearchTerm(search)
     }
-  }, [])
+  }, [id])
 
   useEffect(() => {
     handleSearch(searchTerm)
