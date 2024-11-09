@@ -1,8 +1,8 @@
 import { auth } from '@/auth'
 import { getOrdersCentralMarket, getOrdersByBuyer, getOrdersByOrganization, getOrdersByUser, type Order, getOrdersCSVData } from '@/db/orders'
 import Link from 'next/link'
-import SearchBar from '../organization/components/SearchBar'
-import StatusSelect from './components/StatusSelect'
+import SearchBar from '../../../components/SearchBar'
+import StatusSelect from '../../../components/StatusSelect'
 import DownloadCSV from './components/DownloadCSV'
 import OrdersTable from '@/components/OrdersTable'
 
@@ -12,31 +12,29 @@ export default async function Page({ searchParams }: any) {
   const organizationId = session?.user?.organizationId
   const role = session?.user?.role
 
-  const where = searchParams.search
-  const status = searchParams.status
+  const where1 = searchParams.search1
+  const status1 = searchParams.status1
+
+  const where2 = searchParams.search2
+  const status2 = searchParams.status2
 
   const isCentralMarket = organizationId === 1
 
   let orders: Order[] = []
   if (isCentralMarket) {
-    orders = await getOrdersByBuyer(id!)
+    orders = await getOrdersByBuyer(id!, where1, status1)
   } else {
-    orders = await getOrdersByUser(id!)
+    orders = await getOrdersByUser(id!, where1, status1)
   }
 
   let ordersByOrganization: Awaited<ReturnType<typeof getOrdersCentralMarket>>
 
   if (isCentralMarket) {
-    ordersByOrganization = await getOrdersCentralMarket(where, status)
+    ordersByOrganization = await getOrdersCentralMarket(where2, status2)
   } else {
-    const data = await getOrdersByOrganization(organizationId!, where, status)
+    const data = await getOrdersByOrganization(organizationId!, where2, status2)
     ordersByOrganization = data.map((order) => ({ ...order, organization: null }))
   }
-
-  const sortOrders = <T extends Order>(orders: T[]) =>
-    orders.sort(
-      (a, b) => (a.createdAt?.getTime() ?? Date.now()) - (b.createdAt?.getTime() ?? Date.now())
-    )
 
   const ordersCSVData = await getOrdersCSVData(!isCentralMarket ? organizationId! : undefined)
 
@@ -66,7 +64,7 @@ export default async function Page({ searchParams }: any) {
         </div>
         <div className="grid gap-6 max-w-6xl w-full mx-auto">
           <div className="overflow-x-auto grid gap-4 lg:gap-px lg:bg-gray-50">
-            <OrdersTable orders={orders} />
+            <OrdersTable orders={orders} id={1} />
             {role === 'admin' && (
               <div className="mt-16">
                 <h1 className="font-semibold text-3xl">
@@ -77,11 +75,7 @@ export default async function Page({ searchParams }: any) {
                     ? 'Administra todas las solicitudes'
                     : 'Visualiza todas las solicitudes de tu organización'}
                 </p>
-                <div className="flex gap-2">
-                  <SearchBar />
-                  <StatusSelect />
-                </div>
-                <OrdersTable orders={ordersByOrganization} />
+                <OrdersTable orders={ordersByOrganization} id={2} />
               </div>
             )}
           </div>

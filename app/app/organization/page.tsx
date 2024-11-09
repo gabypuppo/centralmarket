@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/Badge'
 import { capitalizeFirstLetterOfString } from '@/utils'
 
 import RemoveUserAlertDialog from './components/RemoveUserAlertDialog'
-import SearchBar from './components/SearchBar'
+import SearchBar from '../../../components/SearchBar'
 import { Table,
   TableBody,
   TableCell,

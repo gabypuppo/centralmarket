@@ -6,11 +6,17 @@ import NotFoundError from '@/components/error/NotFountError'
 import { getOrdersByBuyer, getOrdersByUser } from '@/db/orders'
 import OrdersTable from '@/components/OrdersTable'
 
-export default async function Page() {
+export default async function Page({ searchParams }: any) {
   const session = await auth()
   const id = session?.user?.id
   const organizationId = session?.user?.organizationId
   const isCentralMarket = organizationId === 1
+
+  const where1 = searchParams.search1
+  const status1 = searchParams.status1
+
+  const where2 = searchParams.search2
+  const status2 = searchParams.status2
 
   if (!id)
     return (
@@ -30,16 +36,16 @@ export default async function Page() {
 
   let orders: Order[] = []
   if (organizationId === 1) {
-    orders = await getLatestOrderBuyer(id!)
+    orders = await getLatestOrderBuyer(id!, where1, status1)
   } else {
-    orders = await getLatestOrderUser(id!)
+    orders = await getLatestOrderUser(id!, where1, status1)
   }
 
   let allOrders: Order[] = []
   if (isCentralMarket) {
-    allOrders = await getOrdersByBuyer(id!)
+    allOrders = await getOrdersByBuyer(id!, where2, status2)
   } else {
-    allOrders = await getOrdersByUser(id!)
+    allOrders = await getOrdersByUser(id!, where2, status2)
   }
 
   return (
@@ -70,7 +76,7 @@ export default async function Page() {
                 <p className="text-muted-foreground">No hay pedidos que esperen tu respuesta.</p>
               </div>
             ) : (
-              <OrdersTable orders={orders} />
+              <OrdersTable orders={orders} id={1} />
             )}
           </div>
         </div>
@@ -79,7 +85,7 @@ export default async function Page() {
             <span>
               <h2 className="text-2xl mt-8 font-bold">Tus pedidos</h2>
             </span>
-            <OrdersTable orders={allOrders} />
+            <OrdersTable orders={allOrders} id={2} />
           </div>
         </div>
       </main>
