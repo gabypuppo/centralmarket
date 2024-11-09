@@ -1,13 +1,10 @@
 import { auth } from '@/auth'
-import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
 import { getOrdersCentralMarket, getOrdersByBuyer, getOrdersByOrganization, getOrdersByUser, type Order, getOrdersCSVData } from '@/db/orders'
 import Link from 'next/link'
-import { getFormattedColors, getFormattedLabel } from './utils'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table'
 import SearchBar from '../organization/components/SearchBar'
 import StatusSelect from './components/StatusSelect'
 import DownloadCSV from './components/DownloadCSV'
+import OrdersTable from '@/components/OrdersTable'
 
 export default async function Page({ searchParams }: any) {
   const session = await auth()
@@ -69,66 +66,7 @@ export default async function Page({ searchParams }: any) {
         </div>
         <div className="grid gap-6 max-w-6xl w-full mx-auto">
           <div className="overflow-x-auto grid gap-4 lg:gap-px lg:bg-gray-50">
-            {orders.length === 0 && (
-              <div className="flex flex-col bg-background text-sm p-2">
-                <div className="p-2 grid gap-1 flex-1">
-                  <div className="font-medium">No se encontraron ordenes</div>
-                </div>
-              </div>
-            )}
-            <Table className="border rounded-lg">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Orden</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Fecha de Entrega</TableHead>
-                  <TableHead>Fecha de Creación</TableHead>
-                  <TableHead>Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortOrders(orders).map((order, index) => (
-                  <TableRow key={index}>
-                    <TableCell>
-                      <div className="flex flex-col gap-1 flex-1 min-w-20">
-                        <h4 className="font-semibold">#{order.id}</h4>
-                        <h5 className="truncate max-w-48">{order.title || <span className='text-gray-500 font-semibold'>(Sin titulo)</span>}</h5>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1 flex-1 min-w-20 items-center">
-                        {order?.orderStatus && (
-                          <Badge className={getFormattedColors(order.orderStatus)}>
-                            {getFormattedLabel(order.orderStatus)}
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1 flex-1 min-w-20 items-center">
-                        <p className="">
-                          {order.shippingDate?.toLocaleDateString('es-US', { dateStyle: 'long' })}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1 flex-1 min-w-20 items-center">
-                        <p className="">
-                          {order.createdAt?.toLocaleDateString('es-US', { dateStyle: 'long' })}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Link href={'/app/orders/' + order.id}>
-                          <Button>Detalle</Button>
-                        </Link>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <OrdersTable orders={orders} />
             {role === 'admin' && (
               <div className="mt-16">
                 <h1 className="font-semibold text-3xl">
@@ -143,65 +81,7 @@ export default async function Page({ searchParams }: any) {
                   <SearchBar />
                   <StatusSelect />
                 </div>
-                <Table className="border rounded-lg mt-4">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Orden</TableHead>
-                      {isCentralMarket && <TableHead>Organización</TableHead>}
-                      <TableHead>Estado</TableHead>
-                      <TableHead>Fecha de Entrega</TableHead>
-                      <TableHead>Fecha de Creación</TableHead>
-                      <TableHead>Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {sortOrders(ordersByOrganization).map((order, index) => (
-                      <TableRow key={index}>
-                        <TableCell>
-                          <div className="flex flex-col gap-1 flex-1 min-w-20 max-w-32">
-                            <h4 className="font-semibold">#{order.id}</h4>
-                            <h5 className="truncate">{order.title || <span className='text-gray-500 font-semibold'>(Sin título)</span>}</h5>
-                          </div>
-                        </TableCell>
-                        {isCentralMarket && (
-                          <TableCell>
-                            <p>{order.organization?.name}</p>
-                          </TableCell>
-                        )}
-                        <TableCell>
-                          <div className="flex gap-1 flex-1 min-w-20 items-center">
-                            {order?.orderStatus && (
-                              <Badge className={getFormattedColors(order.orderStatus)}>
-                                {getFormattedLabel(order.orderStatus)}
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-1 flex-1 min-w-20 items-center">
-                            <p className="">
-                              {order.shippingDate?.toLocaleDateString('es-US', { dateStyle: 'long' })}
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-1 flex-1 min-w-20 items-center">
-                            <p className="">
-                              {order.createdAt?.toLocaleDateString('es-US', { dateStyle: 'long' })}
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-1">
-                            <Link href={'/app/orders/' + order.id}>
-                              <Button>Detalle</Button>
-                            </Link>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <OrdersTable orders={ordersByOrganization} />
               </div>
             )}
           </div>
