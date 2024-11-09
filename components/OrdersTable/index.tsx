@@ -143,7 +143,7 @@ function TableHeadExtra({
   return (
     <TableHead>
       <button
-        className={`flex justify-between items-center gap-1 ${sortedBy === value ? 'font-bold text-slate-900' : 'font-normal'}`}
+        className={`flex justify-between items-center gap-1 ${sortedBy === value ? 'font-semibold text-slate-900' : 'font-normal'}`}
         onClick={() => {
           setSortedBy(value)
           setIsAsc(sortedBy === value ? !isAsc : false)
