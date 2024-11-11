@@ -3,10 +3,14 @@
 import Select from '@/components/ui/Select'
 import { OrderStatusEnum } from '@/utils/enums'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { getFormattedLabel } from '../../utils'
+import { getFormattedLabel } from '../../app/app/orders/utils'
 import { usePathname, useRouter } from 'next/navigation'
 
-export default function StatusSelect() {
+interface Props {
+  id?: number | string
+}
+
+export default function StatusSelect({ id }: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const [status, setStatus] = useState<string>('')
@@ -23,9 +27,9 @@ export default function StatusSelect() {
       const newTimeoutId = setTimeout(() => {
         const params = new URLSearchParams(window.location.search)
         if (value && value !== 'ANY') {
-          params.set('status', value)
+          params.set(`status${id ?? ''}`, value)
         } else {
-          params.delete('status')
+          params.delete(`status${id ?? ''}`)
         }
         params.delete('page')
 
@@ -34,17 +38,17 @@ export default function StatusSelect() {
 
       setTimeoutId(newTimeoutId)
     },
-    [pathname, router]
+    [pathname, router, id]
   )
   
   useEffect(() => {
     // check if param exist and set in search term
     const params = new URLSearchParams(window.location.search)
-    const search = params.get('status')
+    const search = params.get(`status${id ?? ''}`)
     if (search) {
       setStatus(search)
     }
-  }, [])
+  }, [id])
 
   useEffect(() => {
     handleSearch(status)

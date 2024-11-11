@@ -1,7 +1,7 @@
 'server only'
 import { alias, boolean, integer, jsonb, pgTable, real, serial, text, timestamp, varchar } from 'drizzle-orm/pg-core'
 import { db } from './db'
-import { desc, eq, or, and, getTableColumns, ilike, like } from 'drizzle-orm'
+import { desc, eq, or, and, getTableColumns, ilike, like, gte, lte, sum, count } from 'drizzle-orm'
 import { del, put } from '@vercel/blob'
 import { deliveryPoints, type Organization, organizations } from './organizations'
 import { users } from './users'
@@ -29,6 +29,8 @@ export const orders = pgTable('orders', {
   budgetsObservations: varchar('budgets_observations'),
   remittance: varchar('remittance'),
   invoice: varchar('invoice'),
+  finalBudgetSubtotal: integer('final_budget_subtotal'),
+  finalBudgetCurrency: varchar('final_budget_currency'),
   budgetedAt: timestamp('budgeted_at'),
   approvedAt: timestamp('approved_at')
 })
@@ -124,6 +126,7 @@ export async function getOrdersCentralMarket(
         status ? like(orders.orderStatus, status) : undefined,
         where
           ? or(
+            ilike(orders.title, `%${where}%`),
             ilike(orders.finalClient, `%${where}%`),
             ilike(orders.finalAddress, `%${where}%`),
             ilike(orders.notes, `%${where}%`),
@@ -158,12 +161,44 @@ export async function getOrdersByOrganization(
     )
 }
 
-export async function getOrdersByBuyer(buyerId: number) {
-  return await db.select().from(orders).where(eq(orders.assignedBuyerId, buyerId))
+export async function getOrdersByBuyer(buyerId: number, where?: string, status?: OrderStatus) {
+  return await db
+    .select()
+    .from(orders)
+    .where(
+      and(
+        eq(orders.assignedBuyerId, buyerId),
+        status ? like(orders.orderStatus, status) : undefined,
+        where
+          ? or(
+              ilike(orders.title, `%${where}%`),
+              ilike(orders.finalClient, `%${where}%`),
+              ilike(orders.finalAddress, `%${where}%`),
+              ilike(orders.notes, `%${where}%`)
+            )
+          : undefined
+      )
+    )
 }
 
-export async function getOrdersByUser(userId: number) {
-  return await db.select().from(orders).where(eq(orders.createdBy, userId))
+export async function getOrdersByUser(userId: number, where?: string, status?: OrderStatus) {
+  return await db
+    .select()
+    .from(orders)
+    .where(
+      and(
+        eq(orders.createdBy, userId),
+        status ? like(orders.orderStatus, status) : undefined,
+        where
+          ? or(
+              ilike(orders.title, `%${where}%`),
+              ilike(orders.finalClient, `%${where}%`),
+              ilike(orders.finalAddress, `%${where}%`),
+              ilike(orders.notes, `%${where}%`)
+            )
+          : undefined
+      )
+    )
 }
 
 export async function createOrderWithProducts(
@@ -263,35 +298,53 @@ export async function removeBudget(budgetId: number) {
   await db.delete(orderBudgets).where(eq(orderBudgets.id, budgetId))
 }
 
-export async function getLatestOrderUser(userId: number) {
+export async function getLatestOrderUser(userId: number, where?: string, status?: OrderStatus) {
   return db
     .select()
     .from(orders)
     .where(
       and(
+        eq(orders.createdBy, userId),
         or(
           eq(orders.orderStatus, 'ADDITIONAL_INFORMATION_PENDING'),
           eq(orders.orderStatus, 'BUDGETS_TO_REVIEW')
         ),
-        or(eq(orders.createdBy, userId))
+        status ? like(orders.orderStatus, status) : undefined,
+        where
+          ? or(
+              ilike(orders.title, `%${where}%`),
+              ilike(orders.finalClient, `%${where}%`),
+              ilike(orders.finalAddress, `%${where}%`),
+              ilike(orders.notes, `%${where}%`)
+            )
+          : undefined
       )
     )
     .orderBy(desc(orders.createdAt))
 }
 
-export async function getLatestOrderBuyer(buyerId: number) {
+export async function getLatestOrderBuyer(buyerId: number, where?: string, status?: OrderStatus) {
   return db
     .select()
     .from(orders)
     .where(
       and(
+        eq(orders.assignedBuyerId, buyerId),
         or(
           eq(orders.orderStatus, 'ASSIGNED_BUYER'),
           eq(orders.orderStatus, 'ORDER_INFORMATION_COMPLETE'),
           eq(orders.orderStatus, 'BUDGETS_IN_PROGRESS'),
           eq(orders.orderStatus, 'PURCHASE_IN_PROGRESS')
         ),
-        or(eq(orders.assignedBuyerId, buyerId))
+        status ? like(orders.orderStatus, status) : undefined,
+        where
+          ? or(
+              ilike(orders.title, `%${where}%`),
+              ilike(orders.finalClient, `%${where}%`),
+              ilike(orders.finalAddress, `%${where}%`),
+              ilike(orders.notes, `%${where}%`)
+            )
+          : undefined
       )
     )
     .orderBy(desc(orders.createdAt))
@@ -410,4 +463,20 @@ export async function getOrdersCSVData(
     .leftJoin(buyers, eq(order.assignedBuyerId, buyers.id))
     .leftJoin(orderCategories, eq(order.categoryId, orderCategories.id))
     .orderBy(order.id)
+}
+
+export async function getAnalyticsByUserId(userId: number, leftEndDate?: Date, rightEndDate?: Date) {
+  return await db
+    .select({ currency: orders.finalBudgetCurrency , subtotal: sum(orders.finalBudgetSubtotal), count: count(orders.finalBudgetCurrency) })
+    .from(orders)
+    .where(
+      and(
+        eq(orders.assignedBuyerId, userId),
+        eq(orders.orderStatus, 'COMPLETED'),
+        leftEndDate ? gte(orders.approvedAt, leftEndDate) : undefined,
+        rightEndDate ? lte(orders.approvedAt, rightEndDate) : undefined
+      )
+    )
+    .groupBy(orders.finalBudgetCurrency)
+    .orderBy(orders.finalBudgetCurrency)
 }
