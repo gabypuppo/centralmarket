@@ -25,8 +25,11 @@ export default function QuestionForm({ order }: QuestionFormProps) {
       question,
       answer: ''
     })
-    if (!order.id || !order.createdBy || !order.assignedBuyerId) return
-    sendMailNewQuestionAction(order.id, order.createdBy, order.assignedBuyerId)
+    if (order.createdBy && order.assignedBuyerId) {
+      await sendMailNewQuestionAction(order.id, order.createdBy, order.assignedBuyerId)
+    } else {
+      console.log('ERROR: Unable to send new question email. orderId:', order.id)
+    }
 
     revalidatePath(`/${order.id}/questions`)
   }
