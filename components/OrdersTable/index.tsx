@@ -44,7 +44,7 @@ export default function OrdersTable({ orders, id }: Props) {
     return isAsc ? res.reverse() : res
   }, [orders, sortedBy, isAsc])
 
-  const ordersHaveOrg = !!sortedOrders[0].organization
+  const ordersHaveOrg = sortedOrders.some((order) => order.organization !== undefined)
 
   return (
     <div>
@@ -101,11 +101,6 @@ export default function OrdersTable({ orders, id }: Props) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {!sortedOrders.length && (
-            <div className="p-4 bg-background border border-border rounded-lg">
-              <p className=" text-muted-foreground">No hay pedidos.</p>
-            </div>
-          )}
           {sortedOrders.map((order, index) => (
             <TableRow key={index}>
               <TableCell>
@@ -153,6 +148,11 @@ export default function OrdersTable({ orders, id }: Props) {
           ))}
         </TableBody>
       </Table>
+      {!sortedOrders.length && (
+        <div className="p-4 bg-background border border-border rounded-lg">
+          <p className=" text-muted-foreground">No hay pedidos.</p>
+        </div>
+      )}
     </div>
   )
 }
