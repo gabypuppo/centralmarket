@@ -43,7 +43,6 @@ export default async function Page({ searchParams }: any) {
     session.user.organizationId,
     new Date(new Date().setMonth(currentDate.getMonth() - 12))
   )
-  console.log(yearlyAnalytics)
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-muted/40">
