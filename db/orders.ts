@@ -1,7 +1,7 @@
 'server only'
 import { alias, boolean, integer, jsonb, pgTable, real, serial, text, timestamp, varchar } from 'drizzle-orm/pg-core'
 import { db } from './db'
-import { desc, eq, or, and, getTableColumns, ilike, like, gte, lte, sum, count } from 'drizzle-orm'
+import { desc, eq, or, and, getTableColumns, ilike, like, gte, lte, sum, count, sql, not, isNull } from 'drizzle-orm'
 import { del, put } from '@vercel/blob'
 import { deliveryPoints, type Organization, organizations } from './organizations'
 import { users } from './users'
@@ -465,13 +465,21 @@ export async function getOrdersCSVData(
     .orderBy(order.id)
 }
 
-export async function getAnalyticsByUserId(userId: number, leftEndDate?: Date, rightEndDate?: Date) {
+export async function getAnalyticsByUserId(
+  userId: number,
+  leftEndDate?: Date,
+  rightEndDate?: Date
+) {
   return await db
-    .select({ currency: orders.finalBudgetCurrency , subtotal: sum(orders.finalBudgetSubtotal), count: count(orders.finalBudgetCurrency) })
+    .select({
+      currency: orders.finalBudgetCurrency,
+      subtotal: sum(orders.finalBudgetSubtotal),
+      count: count(orders.finalBudgetCurrency)
+    })
     .from(orders)
     .where(
       and(
-        eq(orders.assignedBuyerId, userId),
+        eq(orders.createdBy, userId),
         eq(orders.orderStatus, 'COMPLETED'),
         leftEndDate ? gte(orders.approvedAt, leftEndDate) : undefined,
         rightEndDate ? lte(orders.approvedAt, rightEndDate) : undefined
@@ -479,4 +487,60 @@ export async function getAnalyticsByUserId(userId: number, leftEndDate?: Date, r
     )
     .groupBy(orders.finalBudgetCurrency)
     .orderBy(orders.finalBudgetCurrency)
+}
+
+export async function getAnalyticsByOrganizationId(
+  organizationId: number,
+  leftEndDate?: Date,
+  rightEndDate?: Date
+) {
+  return await db
+    .select({
+      currency: orders.finalBudgetCurrency,
+      subtotal: sum(orders.finalBudgetSubtotal),
+      count: count(orders.finalBudgetCurrency)
+    })
+    .from(orders)
+    .where(
+      and(
+        eq(orders.organizationId, organizationId),
+        eq(orders.orderStatus, 'COMPLETED'),
+        leftEndDate ? gte(orders.approvedAt, leftEndDate) : undefined,
+        rightEndDate ? lte(orders.approvedAt, rightEndDate) : undefined
+      )
+    )
+    .groupBy(orders.finalBudgetCurrency)
+    .orderBy(orders.finalBudgetCurrency)
+}
+
+export async function getMonthlyAnalyticsByOrganizationId(
+  organizationId: number,
+  leftEndDate?: Date,
+  rightEndDate?: Date
+) {
+  return  await db
+    .select({
+      year: sql<string>`EXTRACT(YEAR FROM approved_at)`,
+      month: sql<string>`EXTRACT(MONTH FROM approved_at)`,
+      ARS: sql<string>`SUM(CASE WHEN final_budget_currency = 'ARS' THEN final_budget_subtotal ELSE 0 END)`,
+      USD: sql<string>`SUM(CASE WHEN final_budget_currency = 'USD' THEN final_budget_subtotal ELSE 0 END)`,
+    })
+    .from(orders)
+    .where(
+      and(
+        eq(orders.organizationId, organizationId),
+        eq(orders.orderStatus, 'COMPLETED'),
+        not(isNull(orders.approvedAt)),
+        leftEndDate ? gte(orders.approvedAt, leftEndDate) : undefined,
+        rightEndDate ? lte(orders.approvedAt, rightEndDate) : undefined
+      )
+    )
+    .groupBy(
+      sql`EXTRACT(YEAR FROM approved_at)`,
+      sql`EXTRACT(MONTH FROM approved_at)`
+    )
+    .orderBy(
+      sql`EXTRACT(YEAR FROM approved_at)`,
+      sql`EXTRACT(MONTH FROM approved_at)`
+    )
 }
