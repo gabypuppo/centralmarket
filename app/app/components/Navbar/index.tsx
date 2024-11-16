@@ -19,7 +19,7 @@ export default async function Navbar() {
               <Link href={'/app/orders'}>Mis pedidos</Link>
             </span>
             <span className="mr-4">
-              <Link href={'/app/organization'}>Mi organización</Link>
+              <Link href={'/app/organization/users'}>Mi organización</Link>
             </span>
           </>
         )}

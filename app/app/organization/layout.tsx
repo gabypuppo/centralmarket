@@ -25,7 +25,12 @@ export default async function Layout({ children }: Props) {
           )}
         </div>
         <div className="grid gap-6 max-w-6xl w-full mx-auto">
-          <TabsNav tabs={[{ label: 'Usuarios', href: 'users' }, { label: 'Estadísticas', href: 'analytics' }]} />
+          <TabsNav
+            tabs={[
+              { label: 'Usuarios', href: 'users' },
+              { label: 'Estadísticas', href: 'analytics' }
+            ]}
+          />
           {children}
         </div>
       </main>
