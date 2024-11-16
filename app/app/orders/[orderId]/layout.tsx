@@ -7,9 +7,9 @@ import NotFoundError from '@/components/error/NotFountError'
 import UnauthorizedError from '@/components/error/UnauthorizedError'
 import OrderStatusSteps from './components/OrderStatusSteps'
 import Link from 'next/link'
-import OrderNav from './components/OrderNav'
 import CancelOrderButton from './components/CancelOrderButton'
 import IssueWithMyOrderButton from './components/IssueWithMyOrderButton'
+import TabsNav from '@/app/components/layout/TabsNav'
 
 interface LayoutProps {
   params: {
@@ -77,7 +77,8 @@ export default async function Layout({ params, children }: LayoutProps) {
             <IssueWithMyOrderButton />
           </div>
           <span className="text-lg font-bold max-w-6xl w-full mx-auto">
-            Pedido #{order.id}{' - '}
+            Pedido #{order.id}
+            {' - '}
             {order.title ? (
               `${order.title}`
             ) : (
@@ -90,7 +91,19 @@ export default async function Layout({ params, children }: LayoutProps) {
             </div>
           </div>
           <div className="flex flex-col gap-6 max-w-6xl w-full mx-auto">
-            <OrderNav />
+            <TabsNav
+              tabs={(session.user.organizationId === 1
+                ? [{ label: 'Acciones', href: 'actions' }]
+                : []
+              ).concat([
+                { label: 'Detalles', href: 'details' },
+                { label: 'Productos', href: 'products' },
+                { label: 'Presupuestos', href: 'budgets' },
+                { label: 'Archivos', href: 'files' },
+                { label: 'Preguntas', href: 'questions' },
+                { label: 'Historia', href: 'history' }
+              ])}
+            />
             {children}
           </div>
         </main>
