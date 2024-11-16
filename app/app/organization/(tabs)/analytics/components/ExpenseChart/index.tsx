@@ -74,7 +74,7 @@ export function ExpenseChart({ data, className, ...props }: Props) {
   }, [data])
 
   return (
-    <Card className={cn('max-w-96', className)} {...props}>
+    <Card className={cn('max-w-lg', className)} {...props}>
       <CardHeader>
         <CardTitle>Gastos Anuales</CardTitle>
         {/* <CardDescription>Showing total visitors for the last 6 months</CardDescription> */}
