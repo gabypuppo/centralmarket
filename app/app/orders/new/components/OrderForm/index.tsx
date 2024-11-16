@@ -8,7 +8,7 @@ import { useUser } from '@/contexts/UserContext'
 import { type OrderProduct } from '@/db/orders'
 import type { DeliveryPoint } from '@/db/organizations'
 import { cn } from '@/utils'
-import { addAttachmentsAction, addHistoryAction, createOrderWithProductsAction, sendMailOrderCreatedAction } from '@/utils/actions'
+import { addAttachmentsAction, addHistoryAction, createOrderWithProductsAction, sendMailOrderCreatedAction, sendMailOrderCreatedCentralMarketAction } from '@/utils/actions'
 import { useRouter } from 'next/navigation'
 import React, { type DetailedHTMLProps, type FormHTMLAttributes, useEffect, useState } from 'react'
 
@@ -108,6 +108,13 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
           sendMailOrderCreatedAction(
             res.id,
             user.id,
+            products.map(p => ({
+              ...p, id: 0, orderId: res.id
+            })),
+            new Date()
+          ),
+          sendMailOrderCreatedCentralMarketAction(
+            res.id,
             products.map(p => ({
               ...p, id: 0, orderId: res.id
             })),

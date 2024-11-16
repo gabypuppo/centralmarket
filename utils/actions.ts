@@ -1,7 +1,7 @@
 'use server'
 
 import { getUser, setUserOrganization} from '@/db/users'
-import { sendMailBudgetApproved, sendMailBudgetsToRewiew, sendMailBuyerSelected, sendMailGoBackToBudgetsInProgress, sendMailModifyShippingDate, sendMailNewQuestion, sendMailOrderArrived, sendMailOrderCancelled, sendMailOrderCreated, sendMailOrderInformationComplete, sendMailOrderInformationIncomplete, sendMailOrderRejected, sendMailProductUpdated, sendMailValidation } from './mailer'
+import { sendMailBudgetApproved, sendMailBudgetsToRewiew, sendMailBuyerSelected, sendMailGoBackToBudgetsInProgress, sendMailModifyShippingDate, sendMailNewQuestion, sendMailOrderArrived, sendMailOrderCancelled, sendMailOrderCreated, sendMailOrderCreatedCentralMarket, sendMailOrderInformationComplete, sendMailOrderInformationIncomplete, sendMailOrderRejected, sendMailProductUpdated, sendMailValidation } from './mailer'
 import { createOrderWithProducts, type OrderProduct, type Order, addBudgets, getBudgets, removeBudget, updateOrder, type OrderBudget, updateBudget, addAttachments, getAttachments, type OrderHistory, addHistory, getHistory, deleteCreatedByInOrders, removeFile } from '@/db/orders'
 import { auth } from '@/auth'
 import { createDeliveryPoint, createOrganization, deleteDeliveryPoint, type Organization, type DeliveryPoint, removeOrganization } from '@/db/organizations'
@@ -36,6 +36,10 @@ export async function sendMailModifyShippingDateAction(orderId: number, createdB
 }
 export async function sendMailOrderCreatedAction(orderId: number, createdBy: number, products: OrderProduct[], createdAt: Date) {
   await sendMailOrderCreated(orderId, createdBy, products, createdAt)
+}
+
+export async function sendMailOrderCreatedCentralMarketAction(orderId: number, products: OrderProduct[], createdAt: Date) {
+  await sendMailOrderCreatedCentralMarket(orderId, products, createdAt)
 }
 
 export async function sendMailProductUpdatedAction(orderId: number, createdBy: number, assignedBuyerId: number) {

@@ -213,6 +213,25 @@ export const sendMailOrderCreated = async (
 
 }
 
+export const sendMailOrderCreatedCentralMarket = async (
+    orderId: number,
+    products: OrderProduct[],
+    createdAt: Date
+    ) => {
+    const msgBuyer: MailDataRequired = {
+        to: 'soporte@centralmarket.com.ar',
+        templateId: 'd-0cc0d2be10f148ceb57719ca567b20c1',
+        dynamicTemplateData: {
+        subject: 'Solicitud generada - #' + orderId,
+        title: 'Solicitud generada #' + orderId,
+        message: 'Estimado,<br> La solicitud #' + orderId + ' se ha sido generada exitosamente. <br><b>Detalles de la solicitud:</b><br><ul><li>Numero de la solicitud: ' + orderId + '</li><li>Fecha de generación: ' + createdAt + '</li><li>Productos/Servicios solicitados: ' + products.map(product => product.product).join(', ') + '</li></ul><br>Puede acceder a su solicitud y seguir su progreso en http://www.centralmarket.com.ar.<br><br>Si tiene alguna consulta, dejar la misma en la parte de <b>Preguntas</b> de la solicitud.<br>',
+        order_url: 'https://central-market.vercel.app/app/orders/' + orderId
+        },
+        from: 'verify@em9140.centralmarket.com.ar'
+    }
+    await sendEmail(msgBuyer)
+}
+
 
 export const sendMailProductUpdated = async (
   orderId: number,
