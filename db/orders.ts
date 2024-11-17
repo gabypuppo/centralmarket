@@ -1,7 +1,7 @@
 'server only'
 import { alias, boolean, integer, jsonb, pgTable, real, serial, text, timestamp, varchar } from 'drizzle-orm/pg-core'
 import { db } from './db'
-import { desc, eq, or, and, getTableColumns, ilike, like, gte, lte, sum, count, sql, not, isNull } from 'drizzle-orm'
+import { desc, eq, or, and, getTableColumns, ilike, like, gte, lte, sum, count, sql, not, isNull, isNotNull } from 'drizzle-orm'
 import { del, put } from '@vercel/blob'
 import { deliveryPoints, type Organization, organizations } from './organizations'
 import { users } from './users'
@@ -518,7 +518,7 @@ export async function getMonthlyAnalyticsByOrganizationId(
   leftEndDate?: Date,
   rightEndDate?: Date
 ) {
-  return  await db
+  return await db
     .select({
       year: sql<string>`EXTRACT(YEAR FROM approved_at)`,
       month: sql<string>`EXTRACT(MONTH FROM approved_at)`,
@@ -543,4 +543,20 @@ export async function getMonthlyAnalyticsByOrganizationId(
       sql`EXTRACT(YEAR FROM approved_at)`,
       sql`EXTRACT(MONTH FROM approved_at)`
     )
+}
+
+export async function getOrganizationUsersOrderAnalytics(organizationId: number) {
+  const user = getTableColumns(users)
+
+  return await db
+    .select({
+      createdBy: { ...user },
+      weekly: sql<string>`COUNT(*) FILTER (WHERE orders.created_at >= CURRENT_DATE - INTERVAL '7 days')`,
+      monthly: sql<string>`COUNT(*) FILTER (WHERE orders.created_at >= CURRENT_DATE - INTERVAL '1 month')`,
+      yearly: sql<string>`COUNT(*) FILTER (WHERE orders.created_at >= CURRENT_DATE - INTERVAL '1 year')`
+    })
+    .from(orders)
+    .leftJoin(users, eq(users.id, orders.createdBy))
+    .where(and(isNotNull(orders.createdBy), eq(orders.organizationId, organizationId)))
+    .groupBy(...Object.values(user))
 }
