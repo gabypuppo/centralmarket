@@ -62,6 +62,8 @@ export default async function Page({ params }: PageProps) {
             <AssignCreatedByButton order={order} />
           )}
           <p className="text-sm">Fecha de creación: {order.createdAt?.toLocaleDateString()}</p>
+          <p className="text-sm">Numero de remito: {order.remittance ?? 'Sin asignar'}</p>
+          <p className="text-sm">Numero de factura: {order.invoice ?? 'Sin asignar'}</p>
         </div>
         <div className="flex flex-col gap-1">
           <h3 className="font-medium">Detalles de Envío</h3>
