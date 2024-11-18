@@ -71,6 +71,7 @@ export default async function Page({ params }: PageProps) {
             {deliveryPoint?.city}. {deliveryPoint?.postalCode}
           </p>
           <p className="text-sm">Destino final: {order.finalAddress}</p>
+          <p className="text-sm">Cliente final: {order.finalClient}</p>
           <p className="text-sm">
             {isShippingInProgress ? 'Fecha de envío' : 'Fecha estimada de envío'}:{' '}
             {order.shippingDate?.toLocaleDateString()}
