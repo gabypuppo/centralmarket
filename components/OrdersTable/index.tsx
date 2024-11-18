@@ -139,7 +139,7 @@ export default function OrdersTable({ orders, id }: Props) {
               </TableCell>
               <TableCell>
                 <div className="flex gap-1">
-                  <Link href={'/app/orders/' + order.id}>
+                  <Link href={`/app/orders/${order.id}/details`}>
                     <Button>Detalle</Button>
                   </Link>
                 </div>
