@@ -127,6 +127,7 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
         setIsUploading(false)
       })
 
+    router.prefetch('./')
     router.push('./')
   }
 
