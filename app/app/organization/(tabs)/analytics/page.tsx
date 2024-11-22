@@ -1,44 +1,54 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/Card'
 import { ExpenseChart } from './components/ExpenseChart'
 import { auth } from '@/auth'
-import { getAnalyticsByOrganizationId, getMonthlyAnalyticsByOrganizationId, getOrganizationUsersOrderAnalytics } from '@/db/orders'
+import { getAnalyticsByOrganizationId, getMonthlyAnalyticsByOrganizationId, getOrderCategories, getOrganizationUsersOrderAnalytics } from '@/db/orders'
 import { Separator } from '@/components/ui/Separator'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table'
+import CategorySelect from './components/CategorySelect'
 
-export default async function Page() {
+export default async function Page({ searchParams }: any) {
   const session = await auth()
 
   if (!session?.user.organizationId) return <></>
 
+  const categoryId = searchParams.categoryId
+
   const currentDate = new Date()
 
-  const weeklyAnalyticsPromise = getAnalyticsByOrganizationId(
-    session.user.organizationId,
-    new Date(new Date().setDate(currentDate.getDate() - 7))
-  )
-  const monthlyAnalyticsPromise = getAnalyticsByOrganizationId(
-    session.user.organizationId,
-    new Date(new Date().setMonth(currentDate.getMonth() - 1))
-  )
-  const yearlyAnalyticsPromise = getAnalyticsByOrganizationId(
-    session.user.organizationId,
-    new Date(new Date().setFullYear(currentDate.getFullYear() - 1))
-  )
+  const categoriesPromise = getOrderCategories()
+
+  const weeklyAnalyticsPromise = getAnalyticsByOrganizationId(session.user.organizationId, {
+    leftEndDate: new Date(new Date().setDate(currentDate.getDate() - 7)),
+    categoryId
+  })
+  const monthlyAnalyticsPromise = getAnalyticsByOrganizationId(session.user.organizationId, {
+    leftEndDate: new Date(new Date().setMonth(currentDate.getMonth() - 1)),
+    categoryId
+  })
+  const yearlyAnalyticsPromise = getAnalyticsByOrganizationId(session.user.organizationId, {
+    leftEndDate: new Date(new Date().setFullYear(currentDate.getFullYear() - 1)),
+    categoryId
+  })
 
   const organizationAnalyticsMonthlyPromise = getMonthlyAnalyticsByOrganizationId(
     session.user.organizationId,
-    new Date(new Date().setMonth(currentDate.getMonth() - 12))
+    {
+      leftEndDate: new Date(new Date().setMonth(currentDate.getMonth() - 12)),
+      categoryId
+    }
   )
 
-  const usersAnalyticsPromise = getOrganizationUsersOrderAnalytics(session.user.organizationId)
+  const usersAnalyticsPromise = getOrganizationUsersOrderAnalytics(session.user.organizationId, { categoryId })
 
   const [
+    categories,
     weeklyAnalytics,
     monthlyAnalytics,
     yearlyAnalytics,
     organizationAnalyticsMonthly,
     usersAnalytics
   ] = await Promise.all([
+    categoriesPromise,
     weeklyAnalyticsPromise,
     monthlyAnalyticsPromise,
     yearlyAnalyticsPromise,
@@ -52,93 +62,100 @@ export default async function Page() {
         <CardHeader>
           <h2 className="text-xl font-bold">Reporte de Gastos</h2>
         </CardHeader>
-        <CardContent className="flex gap-4 w-full flex-wrap">
-          <ExpenseChart
-            data={organizationAnalyticsMonthly}
-            className="flex-shrink-0 flex-grow-0 w-full"
-          />
-          <div className="flex gap-4 flex-1 flex-wrap">
-            <Card className="flex flex-col flex-1 gap-2 p-3 min-h-24">
-              <h3 className="text-nowrap">
-                <span className="font-semibold">Gastos del Año: </span>
-                {yearlyAnalytics.reduce((sum, val) => sum + val.count, 0)} Pedido(s)
-              </h3>
-              <Separator />
-              {yearlyAnalytics.map((data, i) => {
-                if (!data.currency || !data.subtotal) return
-                return (
-                  <span key={i} className="text-xl font-bold">
-                    {data.currency}${data.subtotal ?? 0}
-                  </span>
-                )
-              })}
-            </Card>
-            <Card className="flex flex-col flex-1 gap-2 p-3 min-h-24">
-              <h3 className="text-nowrap">
-                <span className="font-semibold">Gastos del Mes: </span>
-                {monthlyAnalytics.reduce((sum, val) => sum + val.count, 0)} Pedido(s)
-              </h3>
-              <Separator />
-              {monthlyAnalytics.map((data, i) => {
-                if (!data.currency || !data.subtotal) return
-                return (
-                  <span key={i} className="text-xl font-bold">
-                    {data.currency}${data.subtotal ?? 0}
-                  </span>
-                )
-              })}
-            </Card>
-            <Card className="flex flex-col flex-1 gap-2 p-3 min-h-24">
-              <h3 className="text-nowrap">
-                <span className="font-semibold">Gastos de la Semana: </span>
-                {weeklyAnalytics.reduce((sum, val) => sum + val.count, 0)} Pedido(s)
-              </h3>
-              <Separator />
-              {weeklyAnalytics.map((data, i) => {
-                if (!data.currency || !data.subtotal) return
-                return (
-                  <span key={i} className="text-xl font-bold">
-                    {data.currency}${data.subtotal ?? 0}
-                  </span>
-                )
-              })}
-            </Card>
+        <CardContent className="flex flex-col gap-4 w-full">
+          <CategorySelect categories={categories} />
+          <div className="flex gap-4 w-full flex-wrap">
+            <ExpenseChart
+              data={organizationAnalyticsMonthly}
+              className="flex-shrink-0 flex-grow-0 w-full"
+            />
+            <div className="flex gap-4 flex-1 flex-wrap">
+              <Card className="flex flex-col flex-1 gap-2 p-3 min-h-24">
+                <h3 className="text-nowrap">
+                  <span className="font-semibold">Gastos del Año: </span>
+                  {yearlyAnalytics.reduce((sum, val) => sum + val.count, 0)} Pedido(s)
+                </h3>
+                <Separator />
+                {yearlyAnalytics.map((data, i) => {
+                  if (!data.currency || !data.subtotal) return
+                  return (
+                    <span key={i} className="text-xl font-bold">
+                      {data.currency}${data.subtotal ?? 0}
+                    </span>
+                  )
+                })}
+              </Card>
+              <Card className="flex flex-col flex-1 gap-2 p-3 min-h-24">
+                <h3 className="text-nowrap">
+                  <span className="font-semibold">Gastos del Mes: </span>
+                  {monthlyAnalytics.reduce((sum, val) => sum + val.count, 0)} Pedido(s)
+                </h3>
+                <Separator />
+                {monthlyAnalytics.map((data, i) => {
+                  if (!data.currency || !data.subtotal) return
+                  return (
+                    <span key={i} className="text-xl font-bold">
+                      {data.currency}${data.subtotal ?? 0}
+                    </span>
+                  )
+                })}
+              </Card>
+              <Card className="flex flex-col flex-1 gap-2 p-3 min-h-24">
+                <h3 className="text-nowrap">
+                  <span className="font-semibold">Gastos de la Semana: </span>
+                  {weeklyAnalytics.reduce((sum, val) => sum + val.count, 0)} Pedido(s)
+                </h3>
+                <Separator />
+                {weeklyAnalytics.map((data, i) => {
+                  if (!data.currency || !data.subtotal) return
+                  return (
+                    <span key={i} className="text-xl font-bold">
+                      {data.currency}${data.subtotal ?? 0}
+                    </span>
+                  )
+                })}
+              </Card>
+            </div>
           </div>
+          <div className="pt-2">
+            <h3 className="text-lg font-semibold">Ordenes por Usuario</h3>
+            <p className="italic text-sm text-muted-foreground">Incluye ordenes no terminadas.</p>
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Usuario</TableHead>
+                <TableHead>Solic. p/Semana</TableHead>
+                <TableHead>Solic. p/Mes</TableHead>
+                <TableHead>Solic. p/Año</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {usersAnalytics.map((userAnalytics, i) => (
+                <TableRow key={i}>
+                  <TableCell>
+                    <p className="font-semibold">
+                      {userAnalytics.createdBy
+                        ? `${userAnalytics.createdBy?.firstName} ${userAnalytics.createdBy?.lastName}`
+                        : 'Usuario Desconocido'}
+                    </p>
+                    <p>{userAnalytics.createdBy?.email}</p>
+                  </TableCell>
+                  <TableCell>
+                    <p>{userAnalytics.weekly}</p>
+                  </TableCell>
+                  <TableCell>
+                    <p>{userAnalytics.monthly}</p>
+                  </TableCell>
+                  <TableCell>
+                    <p>{userAnalytics.yearly}</p>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Usuario</TableHead>
-            <TableHead>Solic. p/Semana</TableHead>
-            <TableHead>Solic. p/Mes</TableHead>
-            <TableHead>Solic. p/Año</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {usersAnalytics.map((userAnalytics, i) => (
-            <TableRow key={i}>
-              <TableCell>
-                <p className="font-semibold">
-                  {userAnalytics.createdBy
-                    ? `${userAnalytics.createdBy?.firstName} ${userAnalytics.createdBy?.lastName}`
-                    : 'Usuario Desconocido'}
-                </p>
-                <p>{userAnalytics.createdBy?.email}</p>
-              </TableCell>
-              <TableCell>
-                <p>{userAnalytics.weekly}</p>
-              </TableCell>
-              <TableCell>
-                <p>{userAnalytics.monthly}</p>
-              </TableCell>
-              <TableCell>
-                <p>{userAnalytics.yearly}</p>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
     </>
   )
 }

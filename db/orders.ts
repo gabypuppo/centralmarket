@@ -491,8 +491,11 @@ export async function getAnalyticsByUserId(
 
 export async function getAnalyticsByOrganizationId(
   organizationId: number,
-  leftEndDate?: Date,
-  rightEndDate?: Date
+  options?: {
+    leftEndDate?: Date,
+    rightEndDate?: Date
+    categoryId?: number
+  }
 ) {
   return await db
     .select({
@@ -505,8 +508,11 @@ export async function getAnalyticsByOrganizationId(
       and(
         eq(orders.organizationId, organizationId),
         eq(orders.orderStatus, 'COMPLETED'),
-        leftEndDate ? gte(orders.approvedAt, leftEndDate) : undefined,
-        rightEndDate ? lte(orders.approvedAt, rightEndDate) : undefined
+        options?.leftEndDate ? gte(orders.approvedAt, options.leftEndDate) : undefined,
+        options?.rightEndDate ? lte(orders.approvedAt, options.rightEndDate) : undefined,
+        options?.categoryId
+          ? and(eq(orders.categoryId, options.categoryId), isNotNull(orders.categoryId))
+          : undefined
       )
     )
     .groupBy(orders.finalBudgetCurrency)
@@ -515,15 +521,18 @@ export async function getAnalyticsByOrganizationId(
 
 export async function getMonthlyAnalyticsByOrganizationId(
   organizationId: number,
-  leftEndDate?: Date,
-  rightEndDate?: Date
+  options?: {
+    leftEndDate?: Date,
+    rightEndDate?: Date
+    categoryId?: number
+  }
 ) {
   return await db
     .select({
       year: sql<string>`EXTRACT(YEAR FROM approved_at)`,
       month: sql<string>`EXTRACT(MONTH FROM approved_at)`,
       ARS: sql<string>`SUM(CASE WHEN final_budget_currency = 'ARS' THEN final_budget_subtotal ELSE 0 END)`,
-      USD: sql<string>`SUM(CASE WHEN final_budget_currency = 'USD' THEN final_budget_subtotal ELSE 0 END)`,
+      USD: sql<string>`SUM(CASE WHEN final_budget_currency = 'USD' THEN final_budget_subtotal ELSE 0 END)`
     })
     .from(orders)
     .where(
@@ -531,21 +540,23 @@ export async function getMonthlyAnalyticsByOrganizationId(
         eq(orders.organizationId, organizationId),
         eq(orders.orderStatus, 'COMPLETED'),
         not(isNull(orders.approvedAt)),
-        leftEndDate ? gte(orders.approvedAt, leftEndDate) : undefined,
-        rightEndDate ? lte(orders.approvedAt, rightEndDate) : undefined
+        options?.leftEndDate ? gte(orders.approvedAt, options.leftEndDate) : undefined,
+        options?.rightEndDate ? lte(orders.approvedAt, options.rightEndDate) : undefined,
+        options?.categoryId
+          ? and(eq(orders.categoryId, options.categoryId), isNotNull(orders.categoryId))
+          : undefined
       )
     )
-    .groupBy(
-      sql`EXTRACT(YEAR FROM approved_at)`,
-      sql`EXTRACT(MONTH FROM approved_at)`
-    )
-    .orderBy(
-      sql`EXTRACT(YEAR FROM approved_at)`,
-      sql`EXTRACT(MONTH FROM approved_at)`
-    )
+    .groupBy(sql`EXTRACT(YEAR FROM approved_at)`, sql`EXTRACT(MONTH FROM approved_at)`)
+    .orderBy(sql`EXTRACT(YEAR FROM approved_at)`, sql`EXTRACT(MONTH FROM approved_at)`)
 }
 
-export async function getOrganizationUsersOrderAnalytics(organizationId: number) {
+export async function getOrganizationUsersOrderAnalytics(
+  organizationId: number,
+  options?: {
+    categoryId?: number
+  }
+) {
   const user = getTableColumns(users)
 
   return await db
@@ -557,6 +568,14 @@ export async function getOrganizationUsersOrderAnalytics(organizationId: number)
     })
     .from(orders)
     .leftJoin(users, eq(users.id, orders.createdBy))
-    .where(and(isNotNull(orders.createdBy), eq(orders.organizationId, organizationId)))
+    .where(
+      and(
+        isNotNull(orders.createdBy),
+        eq(orders.organizationId, organizationId),
+        options?.categoryId
+          ? and(eq(orders.categoryId, options.categoryId), isNotNull(orders.categoryId))
+          : undefined
+      )
+    )
     .groupBy(...Object.values(user))
 }

@@ -39,8 +39,8 @@ export function ExpenseChart({ data, className, ...props }: Props) {
     parsedData.sort((a, b) => (a.year === b.year ? a.month - b.month : a.year - b.year))
 
     // Get the range of years and months
-    const startYear = parsedData[0].year
-    const endYear = parsedData[parsedData.length - 1].year
+    const startYear = parsedData[0]?.year
+    const endYear = parsedData[parsedData.length - 1]?.year
 
     const result: typeof data = []
     let currentYear = startYear
