@@ -14,19 +14,20 @@ export default async function Page({ searchParams }: any) {
   const categoryId = searchParams.categoryId
 
   const currentDate = new Date()
+  const firstOfYear = new Date(currentDate.getFullYear(), 0, 1)
 
   const categoriesPromise = getOrderCategories()
 
   const weeklyAnalyticsPromise = getAnalyticsByOrganizationId(session.user.organizationId, {
-    leftEndDate: new Date(new Date().setDate(currentDate.getDate() - 7)),
+    leftEndDate: new Date(new Date().setDate(currentDate.getDate() - currentDate.getDay())),
     categoryId
   })
   const monthlyAnalyticsPromise = getAnalyticsByOrganizationId(session.user.organizationId, {
-    leftEndDate: new Date(new Date().setMonth(currentDate.getMonth() - 1)),
+    leftEndDate: new Date(new Date(firstOfYear).setMonth(currentDate.getMonth())),
     categoryId
   })
   const yearlyAnalyticsPromise = getAnalyticsByOrganizationId(session.user.organizationId, {
-    leftEndDate: new Date(new Date().setFullYear(currentDate.getFullYear() - 1)),
+    leftEndDate: firstOfYear,
     categoryId
   })
 
@@ -125,9 +126,12 @@ export default async function Page({ searchParams }: any) {
             <TableHeader>
               <TableRow>
                 <TableHead>Usuario</TableHead>
-                <TableHead>Solic. p/Semana</TableHead>
-                <TableHead>Solic. p/Mes</TableHead>
+                <TableHead>Gastos p/Año</TableHead>
                 <TableHead>Solic. p/Año</TableHead>
+                <TableHead>Gastos p/Mes</TableHead>
+                <TableHead>Solic. p/Mes</TableHead>
+                <TableHead>Gastos p/Semana</TableHead>
+                <TableHead>Solic. p/Semana</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -142,13 +146,31 @@ export default async function Page({ searchParams }: any) {
                     <p>{userAnalytics.createdBy?.email}</p>
                   </TableCell>
                   <TableCell>
-                    <p>{userAnalytics.weekly}</p>
+                    <div className="flex flex-col gap-1">
+                      <p>ARS${userAnalytics.yearly.ars ?? 0}</p>
+                      <p>USD${userAnalytics.yearly.usd ?? 0}</p>
+                    </div>
                   </TableCell>
                   <TableCell>
-                    <p>{userAnalytics.monthly}</p>
+                    <p>{userAnalytics.yearly.count}</p>
                   </TableCell>
                   <TableCell>
-                    <p>{userAnalytics.yearly}</p>
+                    <div className="flex flex-col gap-1">
+                      <p>ARS${userAnalytics.monthly.ars ?? 0}</p>
+                      <p>USD${userAnalytics.monthly.usd ?? 0}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <p>{userAnalytics.monthly.count}</p>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-1">
+                      <p>ARS${userAnalytics.weekly.ars ?? 0}</p>
+                      <p>USD${userAnalytics.weekly.usd ?? 0}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <p>{userAnalytics.weekly.count}</p>
                   </TableCell>
                 </TableRow>
               ))}
