@@ -30,7 +30,8 @@ export default function NextOrderStateDialog({ children, disabled = false }: Nex
     updateOrderAction({
       ...orderData,
       orderStatus: newStatus,
-      approvedAt: newStatus === 'COMPLETED' ? new Date() : undefined
+      approvedAt: newStatus === 'COMPLETED' ? new Date() : undefined,
+      updatedAt: new Date()
     })
       .then((res) => {
         setContextOrderData(res[0])

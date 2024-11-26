@@ -16,7 +16,8 @@ export default function ModifyShippingDateInput() {
 
     updateOrderAction({
       ...orderData,
-      shippingDate: new Date(date)
+      shippingDate: new Date(date),
+      updatedAt: new Date()
     })
       .then((res) => {
         setContextOrderData(res[0])

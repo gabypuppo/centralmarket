@@ -26,7 +26,8 @@ export default function CancelOrderButton() {
 
     updateOrderAction({
       id: orderData.id,
-      orderStatus: 'CANCELLED'
+      orderStatus: 'CANCELLED',
+      updatedAt: new Date()
     })
       .then((res) => {
         setContextOrderData(res[0])

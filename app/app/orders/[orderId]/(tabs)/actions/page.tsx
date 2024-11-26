@@ -34,6 +34,7 @@ export default async function Page({ params }: PageProps) {
     await updateOrder({
       id: order.id,
       orderStatus: 'BUDGETS_IN_PROGRESS',
+      updatedAt: new Date(),
       selectedBudgetId: null
     })
     await addHistory({
@@ -106,6 +107,7 @@ export default async function Page({ params }: PageProps) {
                       if (Number.isNaN(parseInt(subtotal))) return
                       await updateOrder({
                         id: order.id,
+                        updatedAt: new Date(),
                         finalBudgetSubtotal: parseInt(subtotal),
                         finalBudgetCurrency: currency
                       })

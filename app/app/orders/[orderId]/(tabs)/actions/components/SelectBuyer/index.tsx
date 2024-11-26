@@ -79,7 +79,8 @@ export default async function SelectBuyer({ order }: SelectBuyerProps) {
       id: order.id,
       assignedBuyerId,
       categoryId,
-      orderStatus: 'ASSIGNED_BUYER'
+      orderStatus: 'ASSIGNED_BUYER',
+      updatedAt: new Date()
     })
 
     await addHistory({

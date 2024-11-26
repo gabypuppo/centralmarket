@@ -14,7 +14,8 @@ export default async function AssignCreatedByButton({ order }: AssignCreatedByBu
     'use server'
     await updateOrder({
       id: order.id,
-      createdBy: session?.user.id
+      createdBy: session?.user.id,
+      updatedAt: new Date()
     })
 
     revalidatePath(`/${order.id}/details`)
