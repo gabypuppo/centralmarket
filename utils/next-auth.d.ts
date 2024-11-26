@@ -1,8 +1,16 @@
-import type { User } from '@/db/users'
+import type { User } from "@/db/users";
 
-declare module 'next-auth' {
+declare module "next-auth" {
   /**
    * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
    */
-  interface Session { user: User }
+  interface Session {
+    user: User & {
+      punchout?: {
+        payloadID: string;
+        buyerCookie: string;
+        checkoutRedirectTo: string;
+      };
+    };
+  }
 }
