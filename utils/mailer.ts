@@ -535,3 +535,17 @@ export const sendRecoveryEmail = async (user: User) => {
 
   await sendEmail(otherMsg)
 }
+
+export const sendFollowUps = async () => {
+  const ordersToFollow = await getOrdersNeedingFollowUp();
+
+  for (const order of ordersToFollow) {
+    const isOneDayFollowUp = isOneDayFollowUpDue(order.lastUpdated);
+    const recipient = getRecipientEmail(order);
+
+    if (!recipient) continue;
+
+    await sendFollowUpEmail(order.id, recipient, isOneDayFollowUp);
+    await updateFollowUpStatus(order.id, isOneDayFollowUp);
+  }
+};

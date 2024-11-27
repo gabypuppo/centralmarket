@@ -32,7 +32,9 @@ export const orders = pgTable('orders', {
   finalBudgetSubtotal: integer('final_budget_subtotal'),
   finalBudgetCurrency: varchar('final_budget_currency'),
   budgetedAt: timestamp('budgeted_at'),
-  approvedAt: timestamp('approved_at')
+  approvedAt: timestamp('approved_at'),
+  follow_up_mail_day_sent: integer('follow_up_mail_day_sent'),
+  follow_up_mail_3days_sent: integer('follow_up_mail_3days_sent'),
 })
 
 export type Order = typeof orders.$inferSelect
@@ -479,4 +481,26 @@ export async function getAnalyticsByUserId(userId: number, leftEndDate?: Date, r
     )
     .groupBy(orders.finalBudgetCurrency)
     .orderBy(orders.finalBudgetCurrency)
+}
+
+export const getOrdersNeedingFollowUp = async (): Promise<Order[]> => {
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+
+  return await db
+    .select()
+    .from(orders)
+    .where(
+
+        or(
+          and(
+            eq(orders.follow_up_mail_day_sent, 0),
+            lte(orders.updatedAt, oneDayAgo)
+          ),
+          and(
+            eq(orders.follow_up_mail_day_sent, 1), 
+            lte(orders.updatedAt, threeDaysAgo)
+          )
+        )
+      )
 }

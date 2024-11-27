@@ -138,3 +138,4 @@ export async function changePassword(userId: number, password: string) {
   const hash = await passwordHash(password)
   await db.update(users).set({ password: hash }).where(eq(users.id, userId))
 }
+

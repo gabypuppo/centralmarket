@@ -46,6 +46,10 @@ export async function sendMailProductUpdatedAction(orderId: number, createdBy: n
   await sendMailProductUpdated(orderId, createdBy, assignedBuyerId)
 }
 
+export async function getOrdersNeedingFollowUpAction() {
+  return await getOrdersNeedingFollowUp()
+}
+
 export async function sendMailOrderRejectedAction(orderId: number, createdBy: number, assignedBuyerId: number) {
   await sendMailOrderRejected(orderId, createdBy, assignedBuyerId)
 }
