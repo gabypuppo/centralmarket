@@ -33,8 +33,8 @@ export const orders = pgTable('orders', {
   finalBudgetCurrency: varchar('final_budget_currency'),
   budgetedAt: timestamp('budgeted_at'),
   approvedAt: timestamp('approved_at'),
-  follow_up_mail_day_sent: integer('follow_up_mail_day_sent'),
-  follow_up_mail_3days_sent: integer('follow_up_mail_3days_sent'),
+  followUpMail1DaySent: boolean('follow_up_mail_day_sent'),
+  followUpMail3DaySent: boolean('follow_up_mail_3days_sent'),
 })
 
 export type Order = typeof orders.$inferSelect
@@ -483,24 +483,40 @@ export async function getAnalyticsByUserId(userId: number, leftEndDate?: Date, r
     .orderBy(orders.finalBudgetCurrency)
 }
 
-export const getOrdersNeedingFollowUp = async (): Promise<Order[]> => {
-  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+export async function getOrdersNeedingFollowUp () {
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+  const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
 
-  return await db
+  const needOneDayPromise = db
     .select()
     .from(orders)
     .where(
-
+      and(
+        eq(orders.followUpMail1DaySent, false),
+        lte(orders.updatedAt, oneDayAgo),
         or(
-          and(
-            eq(orders.follow_up_mail_day_sent, 0),
-            lte(orders.updatedAt, oneDayAgo)
-          ),
-          and(
-            eq(orders.follow_up_mail_day_sent, 1), 
-            lte(orders.updatedAt, threeDaysAgo)
-          )
+          eq(orders.orderStatus, 'ADDITIONAL_INFORMATION_PENDING'),
+          eq(orders.orderStatus, 'BUDGETS_TO_REVIEW')
         )
       )
+    )
+
+  const needThreeDaysPromise = db
+    .select()
+    .from(orders)
+    .where(
+      and(
+        eq(orders.followUpMail1DaySent, true),
+        eq(orders.followUpMail3DaySent, false),
+        lte(orders.updatedAt, threeDaysAgo),
+        or(
+          eq(orders.orderStatus, 'ADDITIONAL_INFORMATION_PENDING'),
+          eq(orders.orderStatus, 'BUDGETS_TO_REVIEW')
+        )
+      )
+    )
+
+  const [needOneDay, needThreeDays] = await Promise.all([needOneDayPromise, needThreeDaysPromise])
+
+  return { needOneDay, needThreeDays }
 }
