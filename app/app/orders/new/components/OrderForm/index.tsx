@@ -8,7 +8,7 @@ import { useUser } from '@/contexts/UserContext'
 import { type OrderProduct } from '@/db/orders'
 import type { DeliveryPoint } from '@/db/organizations'
 import { cn } from '@/utils'
-import { addAttachmentsAction, addHistoryAction, createOrderWithProductsAction, sendMailOrderCreatedAction } from '@/utils/actions'
+import { addAttachmentsAction, addHistoryAction, createOrderWithProductsAction, sendMailOrderCreatedAction, sendMailOrderCreatedCentralMarketAction } from '@/utils/actions'
 import { useRouter } from 'next/navigation'
 import React, { type DetailedHTMLProps, type FormHTMLAttributes, useEffect, useState } from 'react'
 
@@ -112,6 +112,13 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
               ...p, id: 0, orderId: res.id
             })),
             new Date()
+          ),
+          sendMailOrderCreatedCentralMarketAction(
+            res.id,
+            products.map(p => ({
+              ...p, id: 0, orderId: res.id
+            })),
+            new Date()
           )
         ])
       })
@@ -120,6 +127,7 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
         setIsUploading(false)
       })
 
+    router.prefetch('./')
     router.push('./')
   }
 
@@ -281,16 +289,49 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
                   </label>
                   <label className="flex-1 min-w-32 text-xs font-medium flex flex-col gap-2 items-start">
                     Unidad*
-                    <Input
-                      className="font-normal w-20"
+                    <Select
+                      className="font-normal w-fit"
                       name={`unidad-${i}`}
                       required
                       defaultValue={product.quantityUnit ?? 'kg'}
-                      onChange={(e) => {
-                        const value = e.target.value
+                      options={[
+                        {
+                          items: [
+                            { value: 'kg', label: 'Kilogramo' },
+                            { value: 'm', label: 'Metros' },
+                            { value: 'm2', label: 'Metro cuadrado' },
+                            { value: 'm3', label: 'Metro cúbico' },
+                            { value: 'l', label: 'Litros' },
+                            { value: 'kWh', label: '1000 Kilowatt hora' },
+                            { value: 'u', label: 'Unidad' },
+                            { value: 'par', label: 'Par' },
+                            { value: 'docena', label: 'Docena' },
+                            { value: 'ct', label: 'Quilate' },
+                            { value: 'millar', label: 'Millar' },
+                            { value: 'g', label: 'Gramo' },
+                            { value: 'mm', label: 'Milímetro' },
+                            { value: 'mm3', label: 'Milímetro cúbico' },
+                            { value: 'km', label: 'Kilómetro' },
+                            { value: 'hl', label: 'Hectolitro' },
+                            { value: 'cm', label: 'Centímetro' },
+                            { value: 'cm3', label: 'Centímetro cúbico' },
+                            { value: 'ton', label: 'Tonelada' },
+                            { value: 'hm3', label: 'Hectómetro cúbico' },
+                            { value: 'km3', label: 'Kilómetro cúbico' },
+                            { value: 'µg', label: 'Microgramo' },
+                            { value: 'ng', label: 'Nanogramo' },
+                            { value: 'mg', label: 'Miligramo' },
+                            { value: 'ml', label: 'Mililitro' }
+                          ]
+                        }
+                      ]}
+                      onValueChange={(value) => {
                         editProduct(i, 'quantityUnit', value)
-                      }}
+                      }
+                      }
+                      placeholder={''}
                     />
+
                   </label>
                 </div>
                 <div className="flex gap-4 flex-wrap">
