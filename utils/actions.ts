@@ -1,6 +1,6 @@
 'use server'
 
-import { getUser, setUserOrganization} from '@/db/users'
+import { getUser, setUserOrganization } from '@/db/users'
 import { sendMailBudgetApproved, sendMailBudgetsToRewiew, sendMailBuyerSelected, sendMailGoBackToBudgetsInProgress, sendMailModifyShippingDate, sendMailNewQuestion, sendMailOrderArrived, sendMailOrderCancelled, sendMailOrderCreated, sendMailOrderCreatedCentralMarket, sendMailOrderInformationComplete, sendMailOrderInformationIncomplete, sendMailOrderRejected, sendMailProductUpdated, sendMailValidation } from './mailer'
 import { createOrderWithProducts, type OrderProduct, type Order, addBudgets, getBudgets, removeBudget, updateOrder, type OrderBudget, updateBudget, addAttachments, getAttachments, type OrderHistory, addHistory, getHistory, deleteCreatedByInOrders, removeFile } from '@/db/orders'
 import { auth } from '@/auth'
@@ -44,10 +44,6 @@ export async function sendMailOrderCreatedCentralMarketAction(orderId: number, p
 
 export async function sendMailProductUpdatedAction(orderId: number, createdBy: number, assignedBuyerId: number) {
   await sendMailProductUpdated(orderId, createdBy, assignedBuyerId)
-}
-
-export async function getOrdersNeedingFollowUpAction() {
-  return await getOrdersNeedingFollowUp()
 }
 
 export async function sendMailOrderRejectedAction(orderId: number, createdBy: number, assignedBuyerId: number) {

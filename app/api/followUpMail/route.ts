@@ -1,10 +1,28 @@
 import { sendFollowUps } from '@/utils/mailer'
 
-export default async function handler(req: any, res: any) {
-  if (req.method === 'GET') {
+export async function GET() {
+  try {
     await sendFollowUps()
-    res.status(200).json({ success: true, message: 'Follow-ups processed' })
-  } else {
-    res.status(405).end(`Method ${req.method} Not Allowed`)
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: 'Follow-ups processed'
+      }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    )
+  } catch (err) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        message: (err instanceof Error && err.message) ? err.message : 'Unknown error'
+      }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    )
   }
 }
