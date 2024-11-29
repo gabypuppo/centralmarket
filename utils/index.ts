@@ -82,7 +82,7 @@ export function arrayDataToCSVFile<T extends object>(
   data: T[],
   fileName: string = 'file',
 ) {
-  const titleKeys = Object.keys(data[0])
+  const titleKeys = Object.keys(data[0] ?? {})
 
   const refinedData = []
   refinedData.push(titleKeys)
