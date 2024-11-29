@@ -49,9 +49,9 @@ export function CreateDeliveryPointDialog({ organizationId }: { organizationId: 
             Nuevo punto de entrega
           </AlertDialog.Title>
           <Separator className="my-2" />
-          <span className='text-gray-400 my-2'>Los campos con * son obligatorios</span>
+          <span className='text-gray-400 my-2 text-sm'>Los campos con * son obligatorios</span>
           <form
-            className="flex flex-col gap-2"
+            className="flex flex-col gap-2 mt-2"
             onSubmit={(e) => {
               e.preventDefault()
               handleCreate(e).then(() => setOpen(false))
