@@ -1,7 +1,7 @@
 'server only'
-import { alias, boolean, integer, jsonb, pgTable, real, serial, text, timestamp, varchar } from 'drizzle-orm/pg-core'
+import { alias, boolean, integer, jsonb, pgTable, QueryBuilder, real, serial, text, timestamp, varchar } from 'drizzle-orm/pg-core'
 import { db } from './db'
-import { desc, eq, or, and, getTableColumns, ilike, like, gte, lte, sum, count, not } from 'drizzle-orm'
+import { desc, eq, or, and, getTableColumns, ilike, like, gte, lte, sum, count, not, isNull } from 'drizzle-orm'
 import { del, put } from '@vercel/blob'
 import { deliveryPoints, type Organization, organizations } from './organizations'
 import { users } from './users'
@@ -492,7 +492,7 @@ export async function getOrdersNeedingFollowUp () {
     .from(orders)
     .where(
       and(
-        not(eq(orders.followUpMail1DaySent, true)),
+        or(isNull(orders.followUpMail1DaySent), eq(orders.followUpMail1DaySent, false)),
         lte(orders.updatedAt, oneDayAgo),
         or(
           eq(orders.orderStatus, 'ADDITIONAL_INFORMATION_PENDING'),
@@ -507,7 +507,7 @@ export async function getOrdersNeedingFollowUp () {
     .where(
       and(
         eq(orders.followUpMail1DaySent, true),
-        not(eq(orders.followUpMail3DaySent, true)),
+        or(isNull(orders.followUpMail1DaySent), eq(orders.followUpMail3DaySent, false)),
         lte(orders.updatedAt, threeDaysAgo),
         or(
           eq(orders.orderStatus, 'ADDITIONAL_INFORMATION_PENDING'),
