@@ -42,6 +42,8 @@ export default function DownloadCSV({ orders }: DownloadCSVProps) {
   }, [orders])  
 
   useEffect(() => {
+    if (!csvFile) return
+
     const url = URL.createObjectURL(csvFile)
     setFileURL(url)
 
@@ -49,8 +51,14 @@ export default function DownloadCSV({ orders }: DownloadCSVProps) {
   }, [csvFile])
 
   return (
-    <Link href={fileURL} target="_blank" className="ml-auto">
-      <Button>Descargar .CSV</Button>
+    <Link
+      href={fileURL}
+      target="_blank"
+      aria-disabled={!fileURL}
+      tabIndex={!fileURL ? -1 : undefined}
+      className={`ml-auto${fileURL ? '' : ' pointer-events-none'}`}
+    >
+      <Button disabled={!fileURL}>Descargar .CSV</Button>
     </Link>
   )
 }

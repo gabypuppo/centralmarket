@@ -78,11 +78,9 @@ export function arrayBufferToFile(
   return file
 }
 
-export function arrayDataToCSVFile<T extends object>(
-  data: T[],
-  fileName: string = 'file',
-) {
-  const titleKeys = Object.keys(data[0] ?? {})
+export function arrayDataToCSVFile<T extends object>(data: T[], fileName: string = 'file') {
+  if (data.length === 0) return
+  const titleKeys = Object.keys(data[0])
 
   const refinedData = []
   refinedData.push(titleKeys)
