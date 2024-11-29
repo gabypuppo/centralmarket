@@ -1,12 +1,12 @@
 'use client'
 
-import type { User } from '@/db/users'
+import type { UserPunchout } from '@/db/users'
 import { getUserAction } from '@/utils/actions'
 import { createContext, type ReactNode, useContext, useEffect, useState } from 'react'
 
 interface UserContextType {
-  user: User | null
-  setUser: React.Dispatch<React.SetStateAction<User | null>>
+  user: UserPunchout | null
+  setUser: React.Dispatch<React.SetStateAction<UserPunchout | null>>
   clearUser: () => void
 }
 
@@ -21,7 +21,7 @@ export const useUser = () => {
 }
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<UserPunchout | null>(null)
 
   useEffect(() => {
     const getUser = async () => {
@@ -29,7 +29,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }
 
     getUser().then((user) => {
-      setUser(user)
+      setUser(user as UserPunchout)
     })
   }, [])
 

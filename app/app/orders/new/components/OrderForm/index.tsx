@@ -91,7 +91,7 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
       finalClient,
       finalAddress,
       title
-    }, products)
+    }, products, user.punchout)
       .then((res) => {
         const formData = new FormData()
         files?.forEach((file, i) => {

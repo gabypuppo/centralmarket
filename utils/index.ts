@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import crypto from 'crypto'
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs'
 pdfjs.GlobalWorkerOptions.workerSrc =
   'https://unpkg.com/pdfjs-dist@4.4.168/legacy/build/pdf.worker.min.mjs'
@@ -39,7 +40,7 @@ export function renderPDFPreview(file: File): Promise<string> {
 
                 const renderContext = {
                   canvasContext: context,
-                  viewport: viewport
+                  viewport: viewport,
                 }
 
                 page
@@ -63,7 +64,11 @@ export function renderPDFPreview(file: File): Promise<string> {
   })
 }
 
-export function arrayBufferToFile(arrayBuffer: ArrayBuffer, fileName: string, mimeType: string) {
+export function arrayBufferToFile(
+  arrayBuffer: ArrayBuffer,
+  fileName: string,
+  mimeType: string,
+) {
   // Create a new Blob object using the ArrayBuffer
   const blob = new Blob([arrayBuffer], { type: mimeType })
 
@@ -91,4 +96,9 @@ export function arrayDataToCSVFile<T extends object>(data: T[], fileName: string
   })
 
   return new File([csvContent], fileName, { type: 'text/csv;charset=utf-8,' })
+}
+
+export const generateRandomPassword = () => {
+  const buffer = crypto.randomBytes(256)
+  return crypto.createHash('sha256').update(buffer).digest('base64')
 }
