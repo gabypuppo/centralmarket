@@ -576,6 +576,11 @@ export async function getOrganizationUsersOrderAnalytics(
         count: sql<string>`COUNT(*) FILTER (WHERE EXTRACT(YEAR FROM orders.approved_at) = EXTRACT(YEAR FROM CURRENT_DATE))`, 
         usd: sql<string>`SUM(CASE WHEN final_budget_currency = 'USD' THEN final_budget_subtotal ELSE 0 END) FILTER (WHERE EXTRACT(YEAR FROM orders.approved_at) = EXTRACT(YEAR FROM CURRENT_DATE))`,
         ars: sql<string>`SUM(CASE WHEN final_budget_currency = 'ARS' THEN final_budget_subtotal ELSE 0 END) FILTER (WHERE EXTRACT(YEAR FROM orders.approved_at) = EXTRACT(YEAR FROM CURRENT_DATE))` 
+      },
+      leadtimes: {
+        createdToBudgetedDays: sql<string>`AVG(EXTRACT(EPOCH FROM (orders.budgeted_at - orders.created_at)) / 86400)`,
+        budgetedToApprovedDays: sql<string>`AVG(EXTRACT(EPOCH FROM (orders.approved_at - orders.budgeted_at)) / 86400)`,
+        approvedToArrivedDays: sql<string>`AVG(EXTRACT(EPOCH FROM (orders.shipping_date - orders.approved_at)) / 86400) FILTER (WHERE orders.is_arrived = TRUE)`
       }
     })
     .from(orders)

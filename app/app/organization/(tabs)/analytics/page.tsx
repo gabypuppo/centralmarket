@@ -3,8 +3,8 @@ import { ExpenseChart } from './components/ExpenseChart'
 import { auth } from '@/auth'
 import { getAnalyticsByOrganizationId, getMonthlyAnalyticsByOrganizationId, getOrderCategories, getOrganizationUsersOrderAnalytics } from '@/db/orders'
 import { Separator } from '@/components/ui/Separator'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table'
 import CategorySelect from './components/CategorySelect'
+import UserAnalyticsTable from './components/UserAnalyticsTable'
 
 export default async function Page({ searchParams }: any) {
   const session = await auth()
@@ -122,60 +122,7 @@ export default async function Page({ searchParams }: any) {
             <h3 className="text-lg font-semibold">Ordenes por Usuario</h3>
             <p className="italic text-sm text-muted-foreground">Incluye ordenes no terminadas.</p>
           </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Usuario</TableHead>
-                <TableHead>Gastos p/Año</TableHead>
-                <TableHead>Solic. p/Año</TableHead>
-                <TableHead>Gastos p/Mes</TableHead>
-                <TableHead>Solic. p/Mes</TableHead>
-                <TableHead>Gastos p/Semana</TableHead>
-                <TableHead>Solic. p/Semana</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {usersAnalytics.map((userAnalytics, i) => (
-                <TableRow key={i}>
-                  <TableCell>
-                    <p className="font-semibold">
-                      {userAnalytics.createdBy
-                        ? `${userAnalytics.createdBy?.firstName} ${userAnalytics.createdBy?.lastName}`
-                        : 'Usuario Desconocido'}
-                    </p>
-                    <p>{userAnalytics.createdBy?.email}</p>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <p>ARS${userAnalytics.yearly.ars ?? 0}</p>
-                      <p>USD${userAnalytics.yearly.usd ?? 0}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <p>{userAnalytics.yearly.count}</p>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <p>ARS${userAnalytics.monthly.ars ?? 0}</p>
-                      <p>USD${userAnalytics.monthly.usd ?? 0}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <p>{userAnalytics.monthly.count}</p>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <p>ARS${userAnalytics.weekly.ars ?? 0}</p>
-                      <p>USD${userAnalytics.weekly.usd ?? 0}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <p>{userAnalytics.weekly.count}</p>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <UserAnalyticsTable usersAnalytics={usersAnalytics} />
         </CardContent>
       </Card>
     </>
