@@ -121,3 +121,7 @@ export function hasPermission<Resource extends keyof Permissions>(
   if (typeof permission === 'boolean') return permission
   return data !== undefined && permission(user, data)
 }
+
+export function isCentralMarketUser(user: User) {
+  return user.role === 'user-cm' || user.role === 'admin-cm'
+}
