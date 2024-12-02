@@ -9,7 +9,7 @@ type PermissionCheck<Key extends keyof Permissions> =
   | ((user: User, resource: Permissions[Key]['dataType']) => boolean)
 
 type RolesWithPermissions = {
-  [R in Role]: Partial<{
+  [R in NonNullable<User['role']>]: Partial<{
     [Key in keyof Permissions]: Partial<{
       [Action in Permissions[Key]['action']]: PermissionCheck<Key>
     }>
@@ -43,8 +43,6 @@ type Permissions = {
     action: 'read'
   }
 }
-
-type Role = 'user' | 'admin' | 'user-cm' | 'admin-cm'
 
 const ROLES: RolesWithPermissions = {
   user: {
