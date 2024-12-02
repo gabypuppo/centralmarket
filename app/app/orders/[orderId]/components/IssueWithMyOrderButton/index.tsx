@@ -27,7 +27,8 @@ export default function IssueWithMyOrderButton() {
 
     updateOrderAction({
       id: orderData.id,
-      orderStatus: 'REJECTED'
+      orderStatus: 'REJECTED',
+      updatedAt: new Date()
     })
       .then((res) => {
         setContextOrderData(res[0])

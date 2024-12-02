@@ -28,6 +28,7 @@ export default function ModifyOrderPropertyInput({
 
     updateOrderAction({
       id: order.id,
+      updatedAt: new Date(),
       [property]: value
     })
       .then(() => {

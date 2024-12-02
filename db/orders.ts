@@ -1,7 +1,7 @@
 'server only'
-import { alias, boolean, integer, jsonb, pgTable, real, serial, text, timestamp, varchar } from 'drizzle-orm/pg-core'
+import { alias, boolean, integer, jsonb, pgTable, QueryBuilder, real, serial, text, timestamp, varchar } from 'drizzle-orm/pg-core'
 import { db } from './db'
-import { desc, eq, or, and, getTableColumns, ilike, like, gte, lte, sum, count } from 'drizzle-orm'
+import { desc, eq, or, and, getTableColumns, ilike, like, gte, lte, sum, count, not, isNull } from 'drizzle-orm'
 import { del, put } from '@vercel/blob'
 import { deliveryPoints, type Organization, organizations } from './organizations'
 import { users } from './users'
@@ -32,7 +32,9 @@ export const orders = pgTable('orders', {
   finalBudgetSubtotal: integer('final_budget_subtotal'),
   finalBudgetCurrency: varchar('final_budget_currency'),
   budgetedAt: timestamp('budgeted_at'),
-  approvedAt: timestamp('approved_at')
+  approvedAt: timestamp('approved_at'),
+  followUpMail1DaySent: boolean('follow_up_mail_day_sent'),
+  followUpMail3DaySent: boolean('follow_up_mail_3days_sent'),
 })
 
 export type Order = typeof orders.$inferSelect
@@ -479,4 +481,42 @@ export async function getAnalyticsByUserId(userId: number, leftEndDate?: Date, r
     )
     .groupBy(orders.finalBudgetCurrency)
     .orderBy(orders.finalBudgetCurrency)
+}
+
+export async function getOrdersNeedingFollowUp () {
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+  const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
+
+  const needOneDayPromise = db
+    .select()
+    .from(orders)
+    .where(
+      and(
+        or(isNull(orders.followUpMail1DaySent), eq(orders.followUpMail1DaySent, false)),
+        lte(orders.updatedAt, oneDayAgo),
+        or(
+          eq(orders.orderStatus, 'ADDITIONAL_INFORMATION_PENDING'),
+          eq(orders.orderStatus, 'BUDGETS_TO_REVIEW')
+        )
+      )
+    )
+
+  const needThreeDaysPromise = db
+    .select()
+    .from(orders)
+    .where(
+      and(
+        eq(orders.followUpMail1DaySent, true),
+        or(isNull(orders.followUpMail1DaySent), eq(orders.followUpMail3DaySent, false)),
+        lte(orders.updatedAt, threeDaysAgo),
+        or(
+          eq(orders.orderStatus, 'ADDITIONAL_INFORMATION_PENDING'),
+          eq(orders.orderStatus, 'BUDGETS_TO_REVIEW')
+        )
+      )
+    )
+
+  const [needOneDay, needThreeDays] = await Promise.all([needOneDayPromise, needThreeDaysPromise])
+
+  return { needOneDay, needThreeDays }
 }

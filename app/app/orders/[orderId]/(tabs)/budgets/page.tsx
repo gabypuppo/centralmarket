@@ -39,7 +39,8 @@ export default async function Page({ params }: PageProps) {
       await updateOrder({
         id: order.id,
         orderStatus: 'BUDGETS_TO_REVIEW',
-        budgetedAt: new Date()
+        budgetedAt: new Date(),
+        updatedAt: new Date()
       })
     }
 
@@ -69,7 +70,8 @@ export default async function Page({ params }: PageProps) {
 
     await updateOrder({
       id: order.id,
-      budgetsObservations
+      budgetsObservations,
+      updatedAt: new Date()
     })
     await addHistory({
       orderId: order.id,

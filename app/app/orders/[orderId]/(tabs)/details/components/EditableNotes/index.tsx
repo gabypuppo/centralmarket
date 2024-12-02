@@ -16,7 +16,8 @@ export default function EditableNotes({ editable }: { editable: boolean }) {
 
     updateOrderAction({
       ...orderData,
-      notes: inputValue
+      notes: inputValue,
+      updatedAt: new Date()
     })
       .then((res) => {
         setContextOrderData(res[0])

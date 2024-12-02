@@ -17,7 +17,8 @@ export default function ConfirmArrivalButton() {
 
     updateOrderAction({
       ...orderData,
-      isArrived: true
+      isArrived: true,
+      updatedAt: new Date()
     }).then(() => {
       router.refresh()
     }).catch((err) => {

@@ -16,6 +16,7 @@ export default async function ValidateInfoDialog({ order }: ValidateInfoDialogPr
     await updateOrder({
       id: order.id,
       orderStatus: 'ADDITIONAL_INFORMATION_PENDING',
+      updatedAt: new Date()
     })
 
     await addHistory({
@@ -42,6 +43,7 @@ export default async function ValidateInfoDialog({ order }: ValidateInfoDialogPr
     await updateOrder({
       id: order.id,
       orderStatus: 'BUDGETS_IN_PROGRESS',
+      updatedAt: new Date()
     })
 
     await addHistory({
