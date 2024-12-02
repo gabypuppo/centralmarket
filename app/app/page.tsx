@@ -1,60 +1,30 @@
 import Link from 'next/link'
-import type { Order } from '@/db/orders'
-import { getLatestOrderBuyer, getLatestOrderUser } from '@/db/orders'
+import { getLatestOrdersByUser } from '@/db/orders'
 import { auth } from '@/auth'
-import NotFoundError from '@/components/error/NotFountError'
-import { getOrdersByBuyer, getOrdersByUser } from '@/db/orders'
+import { getOrdersByUser } from '@/db/orders'
 import OrdersTable from '@/components/OrdersTable'
+import { hasPermission } from '@/auth/authorization'
 
 export default async function Page({ searchParams }: any) {
   const session = await auth()
-  const id = session?.user?.id
-  const organizationId = session?.user?.organizationId
-  const isCentralMarket = organizationId === 1
+  if (!session) return
 
   const where1 = searchParams.search1
   const status1 = searchParams.status1
 
   const where2 = searchParams.search2
   const status2 = searchParams.status2
+  
+  const ordersPromise = getLatestOrdersByUser(session.user.id, where1, status1)
+  const allOrdersPromise = getOrdersByUser(session.user.id!, where2, status2)
 
-  if (!id)
-    return (
-      <NotFoundError>
-        <p className="text-center text-muted-foreground">
-          Error al traer los datos del usuario.
-        </p>
-      </NotFoundError>
-    )
-
-  if (!organizationId)
-    return (
-      <NotFoundError>
-        <p className="text-center text-muted-foreground">
-          Este usuario no esta asignado a ninguna organización.
-        </p>
-      </NotFoundError>
-    )
-
-  let orders: Order[] = []
-  if (organizationId === 1) {
-    orders = await getLatestOrderBuyer(id!, where1, status1)
-  } else {
-    orders = await getLatestOrderUser(id!, where1, status1)
-  }
-
-  let allOrders: Order[] = []
-  if (isCentralMarket) {
-    allOrders = await getOrdersByBuyer(id!, where2, status2)
-  } else {
-    allOrders = await getOrdersByUser(id!, where2, status2)
-  }
+  const [orders, allOrders] = await Promise.all([ordersPromise, allOrdersPromise])
 
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-1 bg-muted/40 py-8 px-4 md:px-8">
         <div className="max-w-6xl mx-auto grid gap-8">
-          {!isCentralMarket && (
+          {hasPermission(session.user, 'order', 'create') && (
             <Link
               href={'app/orders/new'}
               className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-min mt-6"
