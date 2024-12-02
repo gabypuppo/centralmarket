@@ -44,7 +44,8 @@ export default async function Page({ params }: PageProps) {
                     'use server'
                     await updateOrderAction({
                       id: order.id,
-                      orderStatus: 'COMPLETED'
+                      orderStatus: 'COMPLETED',
+                      updatedAt: new Date()
                     })
                   }
                 }>

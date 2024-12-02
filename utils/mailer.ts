@@ -1,8 +1,8 @@
 import type { MailDataRequired } from '@sendgrid/mail'
 import sgMail, { ResponseError } from '@sendgrid/mail'
-import { getMailWithUserId, type User } from '@/db/users'
+import { getMailWithUserId, getUserById, type User } from '@/db/users'
 import { createVerificationToken } from '@/db/verificationTokens'
-import { OrderProduct } from '@/db/orders'
+import { getOrdersNeedingFollowUp, updateOrder, type Order, type OrderProduct } from '@/db/orders'
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY!)
 
@@ -534,4 +534,45 @@ export const sendRecoveryEmail = async (user: User) => {
   }
 
   await sendEmail(otherMsg)
+}
+
+export const sendFollowUpEmail = async (order: Order) => {
+  if (!order.createdBy) return
+
+  const user = await getUserById(order.createdBy)
+  if (!user?.email) return
+
+  const msg: MailDataRequired = {
+    to: user.email,
+    templateId: 'd-0cc0d2be10f148ceb57719ca567b20c1',
+    dynamicTemplateData: {
+      subject: 'Tu pedido espera cambios - Solicitud #' + order.id,
+      title: 'Seguimiento de tu pedido',
+      message: 'Este es un recordatorio automático sobre el pedido #' + order.id + '.' 
+      + ((order.orderStatus === 'ADDITIONAL_INFORMATION_PENDING' || order.orderStatus === 'BUDGETS_TO_REVIEW') ? 
+        ('<br>Actualmente, está pendiente completar el siguiente paso: <b>'+ (order.orderStatus === 'ADDITIONAL_INFORMATION_PENDING' ? 'Información adicional pendiente': 'Presupuestos cargados') + '</b>.') : '') +
+        '<br><br>Para continuar con el proceso, por favor realiza esta acción lo antes posible.' +
+        '<br>Puede acceder a su solicitud y seguir su progreso en http://www.centralmarket.com.ar.<br><br>Si tiene alguna consulta, dejar la misma en la parte de <b>Preguntas</b> de la solicitud.<br>',
+      order_url: 'https://central-market.vercel.app/app/orders/' + order.id
+    },
+    from: 'verify@em9140.centralmarket.com.ar'
+  }
+
+  return await sendEmail(msg)
+}
+
+export const sendFollowUps = async () => {
+  const { needOneDay, needThreeDays } = await getOrdersNeedingFollowUp()
+
+  const sendOneDayFUPPromises = needOneDay.map((order) => async () => {
+    await sendFollowUpEmail(order)
+    await updateOrder({ id: order.id, followUpMail1DaySent: true })
+  })
+
+  const sendThreeDayFUPPromises = needThreeDays.map((order) => async () => {
+    await sendFollowUpEmail(order)
+    await updateOrder({ id: order.id, followUpMail3DaySent: true })
+  })
+  
+  await Promise.all([...sendOneDayFUPPromises, ...sendThreeDayFUPPromises])
 }
