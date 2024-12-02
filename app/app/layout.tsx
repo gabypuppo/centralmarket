@@ -1,5 +1,5 @@
 import { auth } from '@/auth'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/app/app/components/Navbar'
 import SignOutButton from '@/components/auth/SignOutButton'
 import ValidationButton from '@/components/auth/ValidationButton'
 

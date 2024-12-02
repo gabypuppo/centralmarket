@@ -1,7 +1,7 @@
 'server only'
-import { alias, boolean, integer, jsonb, pgTable, QueryBuilder, real, serial, text, timestamp, varchar } from 'drizzle-orm/pg-core'
+import { alias, boolean, integer, jsonb, pgTable, real, serial, text, timestamp, varchar } from 'drizzle-orm/pg-core'
 import { db } from './db'
-import { desc, eq, or, and, getTableColumns, ilike, like, gte, lte, sum, count, not, isNull } from 'drizzle-orm'
+import { desc, eq, or, and, getTableColumns, ilike, like, gte, lte, sum, count, sql, isNotNull, not, isNull } from 'drizzle-orm'
 import { del, put } from '@vercel/blob'
 import { deliveryPoints, type Organization, organizations } from './organizations'
 import { users } from './users'
@@ -467,13 +467,21 @@ export async function getOrdersCSVData(
     .orderBy(order.id)
 }
 
-export async function getAnalyticsByUserId(userId: number, leftEndDate?: Date, rightEndDate?: Date) {
+export async function getAnalyticsByUserId(
+  userId: number,
+  leftEndDate?: Date,
+  rightEndDate?: Date
+) {
   return await db
-    .select({ currency: orders.finalBudgetCurrency , subtotal: sum(orders.finalBudgetSubtotal), count: count(orders.finalBudgetCurrency) })
+    .select({
+      currency: orders.finalBudgetCurrency,
+      subtotal: sum(orders.finalBudgetSubtotal),
+      count: count(orders.finalBudgetCurrency)
+    })
     .from(orders)
     .where(
       and(
-        eq(orders.assignedBuyerId, userId),
+        eq(orders.createdBy, userId),
         eq(orders.orderStatus, 'COMPLETED'),
         leftEndDate ? gte(orders.approvedAt, leftEndDate) : undefined,
         rightEndDate ? lte(orders.approvedAt, rightEndDate) : undefined
@@ -481,6 +489,114 @@ export async function getAnalyticsByUserId(userId: number, leftEndDate?: Date, r
     )
     .groupBy(orders.finalBudgetCurrency)
     .orderBy(orders.finalBudgetCurrency)
+}
+
+export async function getAnalyticsByOrganizationId(
+  organizationId: number,
+  options?: {
+    leftEndDate?: Date,
+    rightEndDate?: Date
+    categoryId?: number
+  }
+) {
+  return await db
+    .select({
+      currency: orders.finalBudgetCurrency,
+      subtotal: sum(orders.finalBudgetSubtotal),
+      count: count(orders.finalBudgetCurrency)
+    })
+    .from(orders)
+    .where(
+      and(
+        eq(orders.organizationId, organizationId),
+        eq(orders.orderStatus, 'COMPLETED'),
+        options?.leftEndDate ? gte(orders.approvedAt, options.leftEndDate) : undefined,
+        options?.rightEndDate ? lte(orders.approvedAt, options.rightEndDate) : undefined,
+        options?.categoryId
+          ? and(eq(orders.categoryId, options.categoryId), isNotNull(orders.categoryId))
+          : undefined
+      )
+    )
+    .groupBy(orders.finalBudgetCurrency)
+    .orderBy(orders.finalBudgetCurrency)
+}
+
+export async function getMonthlyAnalyticsByOrganizationId(
+  organizationId: number,
+  options?: {
+    leftEndDate?: Date,
+    rightEndDate?: Date
+    categoryId?: number
+  }
+) {
+  return await db
+    .select({
+      year: sql<string>`EXTRACT(YEAR FROM approved_at)`,
+      month: sql<string>`EXTRACT(MONTH FROM approved_at)`,
+      ARS: sql<string>`SUM(CASE WHEN final_budget_currency = 'ARS' THEN final_budget_subtotal ELSE 0 END)`,
+      USD: sql<string>`SUM(CASE WHEN final_budget_currency = 'USD' THEN final_budget_subtotal ELSE 0 END)`
+    })
+    .from(orders)
+    .where(
+      and(
+        eq(orders.organizationId, organizationId),
+        eq(orders.orderStatus, 'COMPLETED'),
+        not(isNull(orders.approvedAt)),
+        options?.leftEndDate ? gte(orders.approvedAt, options.leftEndDate) : undefined,
+        options?.rightEndDate ? lte(orders.approvedAt, options.rightEndDate) : undefined,
+        options?.categoryId
+          ? and(eq(orders.categoryId, options.categoryId), isNotNull(orders.categoryId))
+          : undefined
+      )
+    )
+    .groupBy(sql`EXTRACT(YEAR FROM approved_at)`, sql`EXTRACT(MONTH FROM approved_at)`)
+    .orderBy(sql`EXTRACT(YEAR FROM approved_at)`, sql`EXTRACT(MONTH FROM approved_at)`)
+}
+
+export async function getOrganizationUsersOrderAnalytics(
+  organizationId: number,
+  options?: {
+    categoryId?: number
+  }
+) {
+  const user = getTableColumns(users)
+
+  return await db
+    .select({
+      createdBy: { ...user },
+      weekly: { 
+        count: sql<string>`COUNT(*) FILTER (WHERE EXTRACT(WEEK FROM orders.approved_at) = EXTRACT(WEEK FROM CURRENT_DATE) AND EXTRACT(YEAR FROM orders.approved_at) = EXTRACT(YEAR FROM CURRENT_DATE))`, 
+        usd: sql<string>`SUM(CASE WHEN final_budget_currency = 'USD' THEN final_budget_subtotal ELSE 0 END) FILTER (WHERE EXTRACT(WEEK FROM orders.approved_at) = EXTRACT(WEEK FROM CURRENT_DATE) AND EXTRACT(YEAR FROM orders.approved_at) = EXTRACT(YEAR FROM CURRENT_DATE))`,
+        ars: sql<string>`SUM(CASE WHEN final_budget_currency = 'ARS' THEN final_budget_subtotal ELSE 0 END) FILTER (WHERE EXTRACT(WEEK FROM orders.approved_at) = EXTRACT(WEEK FROM CURRENT_DATE) AND EXTRACT(YEAR FROM orders.approved_at) = EXTRACT(YEAR FROM CURRENT_DATE))` 
+      },
+      monthly: { 
+        count: sql<string>`COUNT(*) FILTER (WHERE EXTRACT(MONTH FROM orders.approved_at) = EXTRACT(MONTH FROM CURRENT_DATE) AND EXTRACT(YEAR FROM orders.approved_at) = EXTRACT(YEAR FROM CURRENT_DATE))`,
+        usd: sql<string>`SUM(CASE WHEN final_budget_currency = 'USD' THEN final_budget_subtotal ELSE 0 END) FILTER (WHERE EXTRACT(MONTH FROM orders.approved_at) = EXTRACT(MONTH FROM CURRENT_DATE) AND EXTRACT(YEAR FROM orders.approved_at) = EXTRACT(YEAR FROM CURRENT_DATE))`,
+        ars: sql<string>`SUM(CASE WHEN final_budget_currency = 'ARS' THEN final_budget_subtotal ELSE 0 END) FILTER (WHERE EXTRACT(MONTH FROM orders.approved_at) = EXTRACT(MONTH FROM CURRENT_DATE) AND EXTRACT(YEAR FROM orders.approved_at) = EXTRACT(YEAR FROM CURRENT_DATE))` 
+      },
+      yearly: { 
+        count: sql<string>`COUNT(*) FILTER (WHERE EXTRACT(YEAR FROM orders.approved_at) = EXTRACT(YEAR FROM CURRENT_DATE))`, 
+        usd: sql<string>`SUM(CASE WHEN final_budget_currency = 'USD' THEN final_budget_subtotal ELSE 0 END) FILTER (WHERE EXTRACT(YEAR FROM orders.approved_at) = EXTRACT(YEAR FROM CURRENT_DATE))`,
+        ars: sql<string>`SUM(CASE WHEN final_budget_currency = 'ARS' THEN final_budget_subtotal ELSE 0 END) FILTER (WHERE EXTRACT(YEAR FROM orders.approved_at) = EXTRACT(YEAR FROM CURRENT_DATE))` 
+      },
+      leadtimes: {
+        createdToBudgetedDays: sql<string>`AVG(EXTRACT(EPOCH FROM (orders.budgeted_at - orders.created_at)) / 86400)`,
+        budgetedToApprovedDays: sql<string>`AVG(EXTRACT(EPOCH FROM (orders.approved_at - orders.budgeted_at)) / 86400)`,
+        approvedToArrivedDays: sql<string>`AVG(EXTRACT(EPOCH FROM (orders.shipping_date - orders.approved_at)) / 86400) FILTER (WHERE orders.is_arrived = TRUE)`
+      }
+    })
+    .from(orders)
+    .leftJoin(users, eq(users.id, orders.createdBy))
+    .where(
+      and(
+        isNotNull(orders.createdBy),
+        eq(orders.organizationId, organizationId),
+        options?.categoryId
+          ? and(eq(orders.categoryId, options.categoryId), isNotNull(orders.categoryId))
+          : undefined
+      )
+    )
+    .groupBy(...Object.values(user))
 }
 
 export async function getOrdersNeedingFollowUp () {

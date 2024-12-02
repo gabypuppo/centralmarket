@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import SignOutButton from '@/components/auth/SignOutButton'
 import { getAnalyticsByUserId } from '@/db/orders'
+import { Separator } from '@/components/ui/Separator'
 
 export default async function Page() {
   const session = await auth()
@@ -69,38 +70,50 @@ export default async function Page() {
           <h2 className="text-xl font-bold">Reporte de Gastos</h2>
         </CardHeader>
         <CardContent className="flex gap-4 w-fit flex-wrap">
-          <Card className="flex flex-col gap-2 p-3">
-            <h3>
+          <Card className="flex flex-col flex-1 gap-2 p-3 min-h-24">
+            <h3 className="text-nowrap">
               <span className="font-semibold">Gastos de la Semana: </span>
               {weeklyAnalytics.reduce((sum, val) => sum + val.count, 0)} Pedido(s)
             </h3>
-            {weeklyAnalytics.map((data, i) => (
-              <span key={i} className="text-lg font-bold">
-                {data.currency}${data.subtotal ?? 0}
-              </span>
-            ))}
+            <Separator />
+            {weeklyAnalytics.map((data, i) => {
+              if (!data.currency || !data.subtotal) return
+              return (
+                <span key={i} className="text-xl font-bold">
+                  {data.currency}${data.subtotal ?? 0}
+                </span>
+              )
+            })}
           </Card>
-          <Card className="flex flex-col gap-2 p-3">
-            <h3>
+          <Card className="flex flex-col flex-1 gap-2 p-3 min-h-24">
+            <h3 className="text-nowrap">
               <span className="font-semibold">Gastos del Mes: </span>
               {monthlyAnalytics.reduce((sum, val) => sum + val.count, 0)} Pedido(s)
             </h3>
-            {monthlyAnalytics.map((data, i) => (
-              <span key={i} className="text-lg font-bold">
-                {data.currency}${data.subtotal ?? 0}
-              </span>
-            ))}
+            <Separator />
+            {monthlyAnalytics.map((data, i) => {
+              if (!data.currency || !data.subtotal) return
+              return (
+                <span key={i} className="text-xl font-bold">
+                  {data.currency}${data.subtotal ?? 0}
+                </span>
+              )
+            })}
           </Card>
-          <Card className="flex flex-col gap-2 p-3">
-            <h3>
+          <Card className="flex flex-col flex-1 gap-2 p-3 min-h-24">
+            <h3 className="text-nowrap">
               <span className="font-semibold">Gastos del Año: </span>
               {yearlyAnalytics.reduce((sum, val) => sum + val.count, 0)} Pedido(s)
             </h3>
-            {yearlyAnalytics.map((data, i) => (
-              <span key={i} className="text-lg font-bold">
-                {data.currency}${data.subtotal ?? 0}
-              </span>
-            ))}
+            <Separator />
+            {yearlyAnalytics.map((data, i) => {
+              if (!data.currency || !data.subtotal) return
+              return (
+                <span key={i} className="text-xl font-bold">
+                  {data.currency}${data.subtotal ?? 0}
+                </span>
+              )
+            })}
           </Card>
         </CardContent>
       </Card>
