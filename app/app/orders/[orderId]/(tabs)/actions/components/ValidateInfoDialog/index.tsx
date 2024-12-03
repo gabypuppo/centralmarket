@@ -16,7 +16,9 @@ export default async function ValidateInfoDialog({ order }: ValidateInfoDialogPr
     await updateOrder({
       id: order.id,
       orderStatus: 'ADDITIONAL_INFORMATION_PENDING',
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      followUpMail1DaySent: false,
+      followUpMail3DaySent: false
     })
 
     await addHistory({
