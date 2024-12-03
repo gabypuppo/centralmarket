@@ -52,7 +52,7 @@ const ROLES: RolesWithPermissions = {
         (user.id === resource.createdBy || !resource.createdBy) && user.organizationId === resource.organizationId
     },
     organization: {
-      read: (user, resource) => user.organizationId === resource.id,
+      read: true,
       'read-users': true,
       'read-delivery-points': true
     }
@@ -68,7 +68,7 @@ const ROLES: RolesWithPermissions = {
         resource.every((order) => order.organizationId === user.organizationId)
     },
     organization: {
-      read: (user, resource) => user.organizationId === resource.id,
+      read: true,
       'read-users': true,
       'delete-users': true,
       'read-delivery-points': true,
@@ -83,6 +83,7 @@ const ROLES: RolesWithPermissions = {
       handle: (user, resource) => user.id === resource.assignedBuyerId
     },
     organization: {
+      read: true,
       'read-users': true
     }
   },
