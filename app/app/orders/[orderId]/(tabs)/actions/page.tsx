@@ -29,7 +29,7 @@ export default async function Page({ params }: PageProps) {
 
   const order = await getOrderById(parseInt(params.orderId))
 
-  if (hasPermission(session.user, 'order', 'handle', order)) return redirect('details')
+  if (!hasPermission(session.user, 'order', 'handle', order)) return redirect('details')
     
   const goBackToBudgetsInProgress = async () => {
     'use server'
