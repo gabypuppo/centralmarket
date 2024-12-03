@@ -8,6 +8,7 @@ import { addHistoryAction, updateOrderAction } from '@/utils/actions'
 import { getFormattedLabel } from '@/app/app/orders/utils'
 import { useUser } from '@/contexts/UserContext'
 import { useRouter } from 'next/navigation'
+import { isCentralMarketUser } from '@/auth/authorization'
 
 interface NextOrderStateDialogProps {
   children: React.ReactNode
@@ -25,6 +26,7 @@ export default function NextOrderStateDialog({ children, disabled = false }: Nex
   }, [orderData])
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (!user) return
 
     setIsUploading(true)
     updateOrderAction({
@@ -38,7 +40,7 @@ export default function NextOrderStateDialog({ children, disabled = false }: Nex
         return addHistoryAction({
           orderId: orderData.id,
           label: getFormattedLabel(newStatus),
-          modifiedBy: user?.organizationId === 1 ? 'Central Market' : 'Usuario'
+          modifiedBy: isCentralMarketUser(user) ? 'Central Market' : 'Usuario'
         })
       })
       .then(() => {
