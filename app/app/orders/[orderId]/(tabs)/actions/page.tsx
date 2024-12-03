@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { revalidatePath } from 'next/cache'
 import Select from '@/components/ui/Select'
+import { hasPermission } from '@/auth/authorization'
 
 interface PageProps {
   params: {
@@ -23,12 +24,13 @@ interface PageProps {
   }
 }
 export default async function Page({ params }: PageProps) {
-  const sessionPromise = auth()
-  const orderPromise = getOrderById(parseInt(params.orderId))
+  const session = await auth()
+  if (!session) return
 
-  const [session, order] = await Promise.all([sessionPromise, orderPromise])
+  const order = await getOrderById(parseInt(params.orderId))
 
-  if (!session || session.user.organizationId !== 1) redirect('details')
+  if (hasPermission(session.user, 'order', 'handle', order)) return redirect('details')
+    
   const goBackToBudgetsInProgress = async () => {
     'use server'
     await updateOrder({

@@ -1,12 +1,16 @@
 import { getOrganizationDeliveryPoints } from '@/db/organizations'
 import OrderForm from './components/OrderForm'
 import { auth } from '@/auth'
+import { hasPermission } from '@/auth/authorization'
+import UnauthorizedError from '@/components/error/UnauthorizedError'
 
 export default async function Page() {
   const session = await auth()
-  if (!session || !session.user.organizationId) return
+  if (!session) return
 
-  const deliveryPoints = await getOrganizationDeliveryPoints(session.user.organizationId)
+  const deliveryPoints = await getOrganizationDeliveryPoints(session.user.organizationId!)
+
+  if (!hasPermission(session.user, 'order', 'create')) return <UnauthorizedError />
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-muted/40">

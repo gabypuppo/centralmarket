@@ -1,4 +1,5 @@
 'use client'
+import { isCentralMarketUser } from '@/auth/authorization'
 import FileDisplay from '@/components/file/FileDisplay'
 import { useUser } from '@/contexts/UserContext'
 import type { OrderFile } from '@/db/orders'
@@ -14,7 +15,7 @@ export default function File({ orderFile }: FileProps) {
   const router = useRouter()
   const { user } = useUser()
   const [file, setFile] = useState<File>()
-  
+    
   useEffect(() => {
     if (!orderFile || !orderFile.fileUrl) return
     fetch(orderFile.fileUrl)
@@ -28,11 +29,12 @@ export default function File({ orderFile }: FileProps) {
   }, [orderFile])
 
   const handleRemove = async () => {
+    if (!user) return
     const removePromise = removeFileAction(orderFile.id)
     const historyPromise = await addHistoryAction({
       orderId: orderFile.orderId,
       label: 'Archivo eliminado',
-      modifiedBy: user?.organizationId === 1 ? 'Central Market' : 'Usuario'
+      modifiedBy: isCentralMarketUser(user) ? 'Central Market' : `${user.firstName} ${user.lastName}`
     })
 
     await Promise.all([removePromise, historyPromise])

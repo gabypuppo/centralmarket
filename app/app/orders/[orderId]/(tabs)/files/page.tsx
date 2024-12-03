@@ -12,6 +12,7 @@ interface PageProps {
 }
 export default async function Page({ params }: PageProps) {
   const session = await auth()
+  if (!session) return
 
   const orderId = parseInt(params.orderId)
 
@@ -22,8 +23,6 @@ export default async function Page({ params }: PageProps) {
 
   const upload = async (formData: FormData) => {
     'use server'
-    if (!session) return
-
     const formFiles = Array.from(formData.values()) as File[]
     await addFiles(order.id, session?.user.organizationId!, formFiles)
 

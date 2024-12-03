@@ -49,7 +49,7 @@ const ROLES: RolesWithPermissions = {
     order: {
       create: true,
       read: (user, resource) =>
-        user.id === resource.createdBy && user.organizationId === resource.organizationId
+        (user.id === resource.createdBy || !resource.createdBy) && user.organizationId === resource.organizationId
     },
     organization: {
       read: (user, resource) => user.organizationId === resource.id,

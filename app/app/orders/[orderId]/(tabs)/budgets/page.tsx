@@ -10,6 +10,7 @@ import { revalidatePath } from 'next/cache'
 import { Textarea } from '@/components/ui/TextArea'
 import { Button } from '@/components/ui/Button'
 import { sendMailBudgetsToRewiewAction } from '@/utils/actions'
+import { hasPermission, isCentralMarketUser } from '@/auth/authorization'
 
 interface PageProps {
   params: {
@@ -19,6 +20,7 @@ interface PageProps {
 }
 export default async function Page({ params }: PageProps) {
   const session = await auth()
+  if (!session) return
 
   const orderId = parseInt(params.orderId)
 
@@ -26,6 +28,8 @@ export default async function Page({ params }: PageProps) {
   const budgetsPromise = getBudgets(orderId)
 
   const [order, budgets] = await Promise.all([orderPromise, budgetsPromise])
+
+  const isCentralMarket = isCentralMarketUser(session.user)
 
   const uploadFiles = async (formData: FormData) => {
     'use server'
@@ -45,14 +49,12 @@ export default async function Page({ params }: PageProps) {
     }
 
     const historyPromises: ReturnType<typeof addHistory>[] = []
-    const organizationId = session?.user.organizationId
     formData.forEach(() => {
       historyPromises.push(
         addHistory({
           orderId: order.id,
           label: 'Nuevo presupuesto cargado',
-          modifiedBy: organizationId === 1 ? 'Central Market' : 'Usuario'
-
+          modifiedBy: isCentralMarket ? 'Central Market' : 'Usuario'
         })
       )
     })
@@ -66,6 +68,7 @@ export default async function Page({ params }: PageProps) {
 
   const uploadBudgetsComments = async (formData: FormData) => {
     'use server'
+    if (!hasPermission(session.user, 'order', 'handle', order)) return
     const budgetsObservations = formData.get('budgetsObservations') as string
 
     await updateOrder({
@@ -76,7 +79,7 @@ export default async function Page({ params }: PageProps) {
     await addHistory({
       orderId: order.id,
       label: 'Comentario de presupuestos',
-      modifiedBy: session?.user.organizationId === 1 ? 'Central Market' : 'Usuario'
+      modifiedBy: isCentralMarketUser(session.user) ? 'Central Market' : `${session.user.firstName} ${session.user.lastName}`
     })
 
     revalidatePath(`/${orderId}/budgets`)
@@ -105,7 +108,7 @@ export default async function Page({ params }: PageProps) {
           ) : (
             <p>Pedido en progreso.</p>
           )}
-          {isBudgetStage && session?.user.organizationId === 1 && (
+          {isBudgetStage && hasPermission(session.user, 'order', 'handle', order) && (
             <>
               <Separator className="mt-4 mb-8" />
               <h3 className="text-lg font-medium mb-2">Cargar Presupuestos</h3>
@@ -128,9 +131,9 @@ export default async function Page({ params }: PageProps) {
               name="budgetsObservations"
               rows={3}
               defaultValue={order?.budgetsObservations ?? ''}
-              disabled={false}
+              disabled={!hasPermission(session.user, 'order', 'handle', order)}
             />
-            {session?.user.organizationId === 1 && (
+            {hasPermission(session.user, 'order', 'handle', order) && (
               <Button
                 className="mt-4"
                 type="submit"
@@ -139,10 +142,6 @@ export default async function Page({ params }: PageProps) {
               </Button>
             )}
           </form>
-
-          
-        
-
         </div>
       </CardContent>
     </Card>

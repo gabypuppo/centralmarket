@@ -10,6 +10,7 @@ import Link from 'next/link'
 import CancelOrderButton from './components/CancelOrderButton'
 import IssueWithMyOrderButton from './components/IssueWithMyOrderButton'
 import TabsNav from '@/app/components/layout/TabsNav'
+import { hasPermission } from '@/auth/authorization'
 
 interface LayoutProps {
   params: {
@@ -19,6 +20,7 @@ interface LayoutProps {
 }
 export default async function Layout({ params, children }: LayoutProps) {
   const session = await auth()
+  if (!session) return
 
   if (!params.orderId || isNaN(Number(params.orderId))) {
     return (
@@ -46,13 +48,7 @@ export default async function Layout({ params, children }: LayoutProps) {
     )
   }
 
-  if (
-    session?.user.organizationId !== 1 &&
-    (session?.user.organizationId !== order.organizationId ||
-      (session?.user.id !== order.createdBy &&
-        order.createdBy !== null &&
-        session.user.role !== 'admin'))
-  ) {
+  if (!hasPermission(session.user, 'order', 'read', order)) {
     return (
       <UnauthorizedError>
         <Button variant={'default'} className="mx-auto mt-4">
@@ -73,7 +69,7 @@ export default async function Layout({ params, children }: LayoutProps) {
                 Volver a solicitudes
               </Button>
             </Link>
-            <CancelOrderButton />
+            {hasPermission(session.user, 'order', 'delete', order) && <CancelOrderButton />}
             <IssueWithMyOrderButton />
           </div>
           <span className="text-lg font-bold max-w-6xl w-full mx-auto">
@@ -92,7 +88,7 @@ export default async function Layout({ params, children }: LayoutProps) {
           </div>
           <div className="flex flex-col gap-6 max-w-6xl w-full mx-auto">
             <TabsNav
-              tabs={(session.user.organizationId === 1
+              tabs={(hasPermission(session.user, 'order', 'handle', order)
                 ? [{ label: 'Acciones', href: 'actions' }]
                 : []
               ).concat([

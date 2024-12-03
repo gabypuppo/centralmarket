@@ -1,4 +1,5 @@
 'use client'
+import { isCentralMarketUser } from '@/auth/authorization'
 import Dropzone from '@/components/file/Dropzone'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -103,7 +104,7 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
           addHistoryAction({
             orderId: res.id,
             label: 'Solicitud creada',
-            modifiedBy: user.organizationId === 1 ? 'Central Market' : 'Usuario'
+            modifiedBy: isCentralMarketUser(user) ? 'Central Market' : 'Usuario'
           }),
           sendMailOrderCreatedAction(
             res.id,
