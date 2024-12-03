@@ -3,8 +3,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { getOrganizationsWithUserMetrics } from '@/db/organizations'
 import Link from 'next/link'
 import RemoveOrganizationAlertDialog from './components/RemoveOrganizationAlertDialog'
+import { auth } from '@/auth'
+import { hasPermission } from '@/auth/authorization'
+import UnauthorizedError from '@/components/error/UnauthorizedError'
 
 export default async function Page() {
+  const session = await auth()
+  if (!session) return
+
+  if (!hasPermission(session.user, 'organizations', 'read')) return <UnauthorizedError />
+
   const organizations = await getOrganizationsWithUserMetrics()
 
   return (
@@ -17,9 +25,11 @@ export default async function Page() {
           </div>
         </div>
         <div className="grid gap-6 max-w-6xl w-full mx-auto">
-          <Link href="organizations/new">
-            <Button>Nueva Organización</Button>
-          </Link>
+          {hasPermission(session.user, 'organization', 'create') && (
+            <Link href="organizations/new">
+              <Button>Nueva Organización</Button>
+            </Link>
+          )}
           <div className="border rounded-lg overflow-hidden grid gap-4 lg:gap-px lg:bg-gray-50">
             <Table>
               <TableHeader>
@@ -29,7 +39,9 @@ export default async function Page() {
                   <TableHead>Dominios</TableHead>
                   <TableHead>Usuarios</TableHead>
                   <TableHead>Ordenes</TableHead>
-                  <TableHead>Actions</TableHead>
+                  {hasPermission(session.user, 'organization', 'delete') && (
+                    <TableHead>Actions</TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -40,9 +52,11 @@ export default async function Page() {
                     <TableCell>{organization.domains.join(', ')}</TableCell>
                     <TableCell>{organization.metrics.users}</TableCell>
                     <TableCell>{organization.metrics.orders}</TableCell>
-                    <TableCell>
-                      <RemoveOrganizationAlertDialog organizationId={organization.id} />
-                    </TableCell>
+                    {hasPermission(session.user, 'organization', 'delete') && (
+                      <TableCell>
+                        <RemoveOrganizationAlertDialog organizationId={organization.id} />
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
