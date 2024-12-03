@@ -10,6 +10,7 @@ import RejectBudgetDialog from '../RejectBudgetDialog'
 import { Button } from '@/components/ui/Button'
 import type { OrderBudget } from '@/db/orders'
 import { useRouter } from 'next/navigation'
+import { isCentralMarketUser } from '@/auth/authorization'
 
 interface BudgetProps {
   budget: OrderBudget
@@ -34,24 +35,25 @@ export default function Budget({ budget, selectedId, setSelectedId }: BudgetProp
       })
   }, [budget])
 
+  const isCentralMarket = !!user && isCentralMarketUser(user)
+
   const handleRemove = async () => {
+    if (!user) return
     const removePromise = removeBudgetAction(budget.id)
     const historyPromise = await addHistoryAction({
       orderId: orderData.id,
       label: 'Presupuesto eliminado',
-      modifiedBy: user?.organizationId === 1 ? 'Central Market' : 'Usuario'
+      modifiedBy: isCentralMarket ? 'Central Market' : 'Usuario'
     })
 
     await Promise.all([removePromise, historyPromise])
     router.refresh()
   }
 
-  const isCentralMarket = user?.organizationId === 1
-
   return file ? (
     <div className="flex flex-col items-center gap-4">
       <a href={budget.fileUrl ?? ''} target="_blank" className="cursor-pointer">
-        <FileDisplay file={file} remove={user?.organizationId === 1 ? handleRemove : undefined} />
+        <FileDisplay file={file} remove={isCentralMarket ? handleRemove : undefined} />
       </a>
       {budget.isRejected ? (
         <AlertDialog message={'Motivo: ' + budget.rejectionReason} onConfirm={async () => {}}>

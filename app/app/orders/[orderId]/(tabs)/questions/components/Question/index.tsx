@@ -12,17 +12,14 @@ interface QuestionProps {
   question: OrderQuestion
 }
 export default async function Question({ question }: QuestionProps) {
-  const sessionPromise = auth()
-  const senderPromise = getUserById(question.userId)
-  
-  const [session, sender] = await Promise.all([sessionPromise, senderPromise])
+  const session = await auth()
+  if (!session) return
 
+  const sender = await getUserById(question.userId)
+  
   const questionAnswerAction = async (formData: FormData) => {
     'use server'
-    const session = await auth()
     const answer = formData.get('answer') as string
-
-    if (!session) return
 
     await editQuestion({
       id: question.id,

@@ -4,12 +4,14 @@ import { revalidatePath } from 'next/cache'
 import { addHistory, getProductsByOrderId, updateOrder, type Order } from '@/db/orders'
 import { auth } from '@/auth'
 import { sendMailOrderInformationCompleteAction, sendMailOrderInformationIncompleteAction } from '@/utils/actions'
+import { isCentralMarketUser } from '@/auth/authorization'
 
 interface ValidateInfoDialogProps {
   order: Order
 }
 export default async function ValidateInfoDialog({ order }: ValidateInfoDialogProps) {
   const session = await auth()
+  if (!session) return
 
   const needMoreInformationAction = async () => {
     'use server'
@@ -24,7 +26,7 @@ export default async function ValidateInfoDialog({ order }: ValidateInfoDialogPr
     await addHistory({
       orderId: order.id,
       label: 'Pedido necesita mas información',
-      modifiedBy: session?.user.organizationId === 1 ? 'Central Market' : 'Usuario'
+      modifiedBy: isCentralMarketUser(session.user) ? 'Central Market' : 'Usuario'
     })
 
     if (!order.id || !order.createdBy || !order.createdAt) {
@@ -51,13 +53,13 @@ export default async function ValidateInfoDialog({ order }: ValidateInfoDialogPr
     await addHistory({
       orderId: order.id,
       label: 'Información del pedido completada',
-      modifiedBy: session?.user.organizationId === 1 ? 'Central Market': 'Usuario'
+      modifiedBy: isCentralMarketUser(session.user) ? 'Central Market' : 'Usuario'
     })
 
     await addHistory({
       orderId: order.id,
       label: 'Presupuestos en progreso',
-      modifiedBy: session?.user.organizationId === 1 ? 'Central Market' : 'Usuario'
+      modifiedBy: isCentralMarketUser(session.user) ? 'Central Market' : 'Usuario'
     })
 
     const products = await getProductsByOrderId(order.id)

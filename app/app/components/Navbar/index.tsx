@@ -1,9 +1,10 @@
 import { auth } from '@/auth'
+import { hasPermission } from '@/auth/authorization'
 import Link from 'next/link'
 
 export default async function Navbar() {
   const session = await auth()
-  const user = session ? session.user : null
+  const user = session?.user
 
   return (
     <div className="flex justify-between items-center h-16 bg-white text-black shadow-sm">
@@ -13,17 +14,17 @@ export default async function Navbar() {
         </span>
       </div>
       <div className="flex items-center">
-        {user?.role === 'admin' && (
-          <>
-            <span className="mr-4">
-              <Link href={'/app/orders'}>Mis pedidos</Link>
-            </span>
-            <span className="mr-4">
-              <Link href={'/app/organization/users'}>Mi organización</Link>
-            </span>
-          </>
+        <span className="mr-4">
+          <Link href={'/app/orders'}>
+            {user && hasPermission(user, 'orders', 'read') ? 'Pedidos' : 'Mis pedidos'}
+          </Link>
+        </span>
+        {user && hasPermission(user, 'organization', 'read') && (
+          <span className="mr-4">
+            <Link href={'/app/organization/users'}>Mi organización</Link>
+          </span>
         )}
-        {user?.organizationId === 1 && user?.role === 'admin' && (
+        {user && hasPermission(user, 'organizations', 'read') && (
           <span className="mr-4">
             <Link href={'/app/organizations'}>Organizaciones</Link>
           </span>

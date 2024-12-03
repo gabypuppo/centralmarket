@@ -6,16 +6,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { getOrganizationMembers } from '@/db/organizations'
 import { capitalizeFirstLetterOfString } from '@/utils'
 import RemoveUserAlertDialog from './components/RemoveUserAlertDialog'
+import UnauthorizedError from '@/components/error/UnauthorizedError'
+import { hasPermission } from '@/auth/authorization'
 
 export default async function Page({ searchParams }: any) {
-  const where = searchParams.search ?? ''
   const session = await auth()
+  if (!session) return
 
-  if (!session?.user.organizationId) return <></>
+  if (!hasPermission(session.user, 'organization', 'read-users')) return <UnauthorizedError />
 
-  const organizationMembers = await getOrganizationMembers(session.user.organizationId, where)
+  const where = searchParams.search ?? ''
+  
+  const organizationMembers = await getOrganizationMembers(session.user.organizationId!, where)
 
-  if (!organizationMembers) return <></>
   return (
     <>
       <SearchBar />
@@ -26,7 +29,9 @@ export default async function Page({ searchParams }: any) {
               <TableHead>Usuario</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Verificado</TableHead>
-              <TableHead>Acciones</TableHead>
+              {hasPermission(session.user, 'organization', 'delete-users') && (
+                <TableHead>Acciones</TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -59,11 +64,13 @@ export default async function Page({ searchParams }: any) {
                     </Badge>
                   </div>
                 </TableCell>
-                <TableCell>
-                  <div className="p-2 grid gap-1 flex-1">
-                    {session.user.role === 'admin' && <RemoveUserAlertDialog userId={member.id} />}
-                  </div>
-                </TableCell>
+                {hasPermission(session.user, 'organization', 'delete-users') && (
+                  <TableCell>
+                    <div className="p-2 grid gap-1 flex-1">
+                      <RemoveUserAlertDialog userId={member.id} />
+                    </div>
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>

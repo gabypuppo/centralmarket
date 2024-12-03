@@ -6,27 +6,32 @@ import { Table,
   TableHeader,
   TableRow } from '@/components/ui/Table'
 import { getOrganizationDeliveryPoints } from '@/db/organizations'
-import { redirect } from 'next/navigation'
 import { CreateDeliveryPointDialog } from './components/CreateDeliveryPointDialog'
 import RemoveDeliveryPointDialog from './components/RemoveDeliveryPointDialog'
 import { Card, CardContent, CardHeader } from '@/components/ui/Card'
+import { hasPermission } from '@/auth/authorization'
+import UnauthorizedError from '@/components/error/UnauthorizedError'
 
 export default async function Page() {
   const session = await auth()
+  if (!session) return
 
-  if (!session?.user.organizationId) return <></>
+  if (!hasPermission(session.user, 'organization', 'read-delivery-points')) return <UnauthorizedError />
 
-  const DeliveryPoints = await getOrganizationDeliveryPoints(session.user.organizationId)
+  const deliveryPoints = await getOrganizationDeliveryPoints(session.user.organizationId!)
 
-  if (session.user.role !== 'admin') redirect('/')
   return (
     <Card>
-      <CardHeader className='gap-0'>
-        <h2 className="font-semibold text-xl">Administra los puntos de entrega</h2>
-        <p className="text-muted-foreground text-sm">Agrega o elimina los lugares de entrega de tu organización.</p>
+      <CardHeader className="gap-0">
+        <h2 className="font-semibold text-xl">Puntos de Entrega</h2>
+        <p className="text-muted-foreground text-sm">
+          Lugares de entrega de tu organización.
+        </p>
       </CardHeader>
       <CardContent className="flex flex-col gap-6 max-w-6xl w-full mx-auto">
-        <CreateDeliveryPointDialog organizationId={session.user.organizationId} />
+        {hasPermission(session.user, 'organization', 'create-delivery-points') && (
+          <CreateDeliveryPointDialog organizationId={session.user.organizationId!} />
+        )}
         <Table>
           <TableHeader>
             <TableRow>
@@ -36,21 +41,25 @@ export default async function Page() {
               <TableHead>Estado</TableHead>
               <TableHead>País</TableHead>
               <TableHead>Código Postal</TableHead>
-              <TableHead>Acciones</TableHead>
+              {hasPermission(session.user, 'organization', 'delete-delivery-points') && (
+                <TableHead>Acciones</TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {DeliveryPoints.map((DeliveryPoint, index) => (
+            {deliveryPoints.map((deliveryPoint, index) => (
               <TableRow key={index}>
-                <TableCell>{DeliveryPoint.name}</TableCell>
-                <TableCell>{DeliveryPoint.address}</TableCell>
-                <TableCell>{DeliveryPoint.city}</TableCell>
-                <TableCell>{DeliveryPoint.state}</TableCell>
-                <TableCell>{DeliveryPoint.country}</TableCell>
-                <TableCell>{DeliveryPoint.postalCode}</TableCell>
-                <TableCell>
-                  <RemoveDeliveryPointDialog DeliveryPointId={DeliveryPoint.id} />
-                </TableCell>
+                <TableCell>{deliveryPoint.name}</TableCell>
+                <TableCell>{deliveryPoint.address}</TableCell>
+                <TableCell>{deliveryPoint.city}</TableCell>
+                <TableCell>{deliveryPoint.state}</TableCell>
+                <TableCell>{deliveryPoint.country}</TableCell>
+                <TableCell>{deliveryPoint.postalCode}</TableCell>
+                {hasPermission(session.user, 'organization', 'delete-delivery-points') && (
+                  <TableCell>
+                    <RemoveDeliveryPointDialog DeliveryPointId={deliveryPoint.id} />
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>

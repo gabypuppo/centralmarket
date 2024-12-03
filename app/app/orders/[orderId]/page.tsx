@@ -1,4 +1,5 @@
 import { auth } from '@/auth'
+import { hasPermission } from '@/auth/authorization'
 import { redirect, RedirectType } from 'next/navigation'
 
 interface PageProps {
@@ -8,8 +9,9 @@ interface PageProps {
 }
 export default async function Page({ params }: PageProps) {
   const session = await auth()
+  if (!session) return
   
-  if (session?.user.organizationId === 1) {
+  if (hasPermission(session.user, 'order', 'handle')) {
     redirect(`${params.orderId}/actions`, RedirectType.replace)
   } else{
     redirect(`${params.orderId}/details`, RedirectType.replace)

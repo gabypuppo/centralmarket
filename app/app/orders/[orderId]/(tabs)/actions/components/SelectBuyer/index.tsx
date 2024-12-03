@@ -1,4 +1,5 @@
 import { auth } from '@/auth'
+import { isCentralMarketUser } from '@/auth/authorization'
 import { Button } from '@/components/ui/Button'
 import { Label } from '@/components/ui/Label'
 import Select from '@/components/ui/Select'
@@ -73,7 +74,6 @@ export default async function SelectBuyer({ order }: SelectBuyerProps) {
     'use server'
     const assignedBuyerId = parseInt(formData.get('buyer') as string)
     const categoryId = parseInt(formData.get('category') as string)
-    const organizationId = session.user.organizationId
 
     await updateOrder({
       id: order.id,
@@ -86,7 +86,7 @@ export default async function SelectBuyer({ order }: SelectBuyerProps) {
     await addHistory({
       orderId: order.id,
       label: 'Comprador asignado',
-      modifiedBy: organizationId === 1 ? 'Central Market' : 'Usuario'
+      modifiedBy: isCentralMarketUser(session.user) ? 'Central Market' : 'Usuario'
     })
 
     if (!order.id || !order.createdBy || !assignedBuyerId || !order.createdAt) return

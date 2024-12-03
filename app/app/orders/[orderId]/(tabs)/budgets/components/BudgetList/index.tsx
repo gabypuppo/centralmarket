@@ -8,6 +8,7 @@ import { useOrderContext } from '@/contexts/OrderContext'
 import { Button } from '@/components/ui/Button'
 import { addHistoryAction, sendMailBudgetApprovedAction, updateOrderAction } from '@/utils/actions'
 import { useRouter } from 'next/navigation'
+import { isCentralMarketUser } from '@/auth/authorization'
 
 interface BudgetListProps {
   budgets: OrderBudget[]
@@ -27,6 +28,8 @@ export default function BudgetList({ budgets }: BudgetListProps) {
     if (selectedBudget?.isRejected) setSelectedId(undefined)
   }, [budgets, selectedId])
 
+  const isCentralMarket = !!user && isCentralMarketUser(user)
+
   const updateSelectedBudgetId = () => {
     if (orderData.orderStatus !== 'BUDGETS_TO_REVIEW' || isUploading) return
     setIsUploading(true)
@@ -42,7 +45,7 @@ export default function BudgetList({ budgets }: BudgetListProps) {
     const addHistoryPromise = addHistoryAction({
       orderId: orderData.id,
       label: 'Presupuesto aprobado',
-      modifiedBy: user?.organizationId === 1 ? 'Central Market' : 'Usuario'
+      modifiedBy: isCentralMarket ? 'Central Market' : 'Usuario'
     })
 
     if (!orderData.id || !orderData.createdBy || !orderData.assignedBuyerId || !orderData.createdAt) {
@@ -75,7 +78,7 @@ export default function BudgetList({ budgets }: BudgetListProps) {
         ))}
       </div>
       {OrderStatusEnum[orderData.orderStatus!] === OrderStatusEnum.BUDGETS_TO_REVIEW &&
-        user?.organizationId !== 1 && (
+        !isCentralMarket && (
         <Button
           className="mt-6"
           onClick={updateSelectedBudgetId}
