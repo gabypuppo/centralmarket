@@ -1,5 +1,6 @@
 'use client'
 
+import { isCentralMarketUser } from '@/auth/authorization'
 import { Button } from '@/components/ui/Button'
 import { useOrderContext } from '@/contexts/OrderContext'
 import { useUser } from '@/contexts/UserContext'
@@ -20,6 +21,8 @@ export default function CancelOrderButton() {
     return <></>
   }
 
+  const isCentralMarket = !!user && isCentralMarketUser(user)
+
   const cancelOrder = () => {
     if (isUploading || !user || orderData.orderStatus === 'CANCELLED') return
     setIsUploading(true)
@@ -35,7 +38,7 @@ export default function CancelOrderButton() {
         return addHistoryAction({
           orderId: orderData.id,
           label: 'Orden cancelada',
-          modifiedBy: user.organizationId === 1 ? 'Central Market': 'Usuario'
+          modifiedBy: isCentralMarket ? 'Central Market': 'Usuario'
         })
       })
       .then(() => {})

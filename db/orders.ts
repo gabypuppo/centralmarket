@@ -4,7 +4,7 @@ import { db } from './db'
 import { desc, eq, or, and, getTableColumns, ilike, like, gte, lte, sum, count, sql, isNotNull, not, isNull } from 'drizzle-orm'
 import { del, put } from '@vercel/blob'
 import { deliveryPoints, type Organization, organizations } from './organizations'
-import { users } from './users'
+import { getUserById, users } from './users'
 
 export const orders = pgTable('orders', {
   id: serial('id').primaryKey(),
@@ -163,44 +163,50 @@ export async function getOrdersByOrganization(
     )
 }
 
-export async function getOrdersByBuyer(buyerId: number, where?: string, status?: OrderStatus) {
-  return await db
-    .select()
-    .from(orders)
-    .where(
-      and(
-        eq(orders.assignedBuyerId, buyerId),
-        status ? like(orders.orderStatus, status) : undefined,
-        where
-          ? or(
-              ilike(orders.title, `%${where}%`),
-              ilike(orders.finalClient, `%${where}%`),
-              ilike(orders.finalAddress, `%${where}%`),
-              ilike(orders.notes, `%${where}%`)
-            )
-          : undefined
-      )
-    )
-}
-
 export async function getOrdersByUser(userId: number, where?: string, status?: OrderStatus) {
-  return await db
-    .select()
-    .from(orders)
-    .where(
-      and(
-        eq(orders.createdBy, userId),
-        status ? like(orders.orderStatus, status) : undefined,
-        where
-          ? or(
+  const user = await getUserById(userId)
+
+  if (user?.role === 'user' || user?.role === 'admin') {
+    return await db
+      .select()
+      .from(orders)
+      .where(
+        and(
+          eq(orders.createdBy, userId),
+          status ? like(orders.orderStatus, status) : undefined,
+          where
+            ? or(
               ilike(orders.title, `%${where}%`),
               ilike(orders.finalClient, `%${where}%`),
               ilike(orders.finalAddress, `%${where}%`),
               ilike(orders.notes, `%${where}%`)
             )
-          : undefined
+            : undefined
+        )
       )
-    )
+  }
+
+  if (user?.role === 'user-cm' || user?.role === 'admin-cm') {
+    return await db
+      .select()
+      .from(orders)
+      .where(
+        and(
+          eq(orders.assignedBuyerId, userId),
+          status ? like(orders.orderStatus, status) : undefined,
+          where
+            ? or(
+              ilike(orders.title, `%${where}%`),
+              ilike(orders.finalClient, `%${where}%`),
+              ilike(orders.finalAddress, `%${where}%`),
+              ilike(orders.notes, `%${where}%`)
+            )
+            : undefined
+        )
+      )
+  }
+
+  return []
 }
 
 export async function createOrderWithProducts(
@@ -300,56 +306,62 @@ export async function removeBudget(budgetId: number) {
   await db.delete(orderBudgets).where(eq(orderBudgets.id, budgetId))
 }
 
-export async function getLatestOrderUser(userId: number, where?: string, status?: OrderStatus) {
-  return db
-    .select()
-    .from(orders)
-    .where(
-      and(
-        eq(orders.createdBy, userId),
-        or(
-          eq(orders.orderStatus, 'ADDITIONAL_INFORMATION_PENDING'),
-          eq(orders.orderStatus, 'BUDGETS_TO_REVIEW')
-        ),
-        status ? like(orders.orderStatus, status) : undefined,
-        where
-          ? or(
-              ilike(orders.title, `%${where}%`),
-              ilike(orders.finalClient, `%${where}%`),
-              ilike(orders.finalAddress, `%${where}%`),
-              ilike(orders.notes, `%${where}%`)
-            )
-          : undefined
-      )
-    )
-    .orderBy(desc(orders.createdAt))
-}
+export async function getLatestOrdersByUser(userId: number, where?: string, status?: OrderStatus) {
+  const user = await getUserById(userId)
 
-export async function getLatestOrderBuyer(buyerId: number, where?: string, status?: OrderStatus) {
-  return db
-    .select()
-    .from(orders)
-    .where(
-      and(
-        eq(orders.assignedBuyerId, buyerId),
-        or(
-          eq(orders.orderStatus, 'ASSIGNED_BUYER'),
-          eq(orders.orderStatus, 'ORDER_INFORMATION_COMPLETE'),
-          eq(orders.orderStatus, 'BUDGETS_IN_PROGRESS'),
-          eq(orders.orderStatus, 'PURCHASE_IN_PROGRESS')
-        ),
-        status ? like(orders.orderStatus, status) : undefined,
-        where
-          ? or(
+  if (user?.role === 'user' || user?.role === 'admin') {
+    return db
+      .select()
+      .from(orders)
+      .where(
+        and(
+          eq(orders.createdBy, userId),
+          or(
+            eq(orders.orderStatus, 'ADDITIONAL_INFORMATION_PENDING'),
+            eq(orders.orderStatus, 'BUDGETS_TO_REVIEW')
+          ),
+          status ? like(orders.orderStatus, status) : undefined,
+          where
+            ? or(
               ilike(orders.title, `%${where}%`),
               ilike(orders.finalClient, `%${where}%`),
               ilike(orders.finalAddress, `%${where}%`),
               ilike(orders.notes, `%${where}%`)
             )
-          : undefined
+            : undefined
+        )
       )
-    )
-    .orderBy(desc(orders.createdAt))
+      .orderBy(desc(orders.createdAt))
+  }
+
+  if (user?.role === 'user-cm' || user?.role === 'admin-cm') {
+    return db
+      .select()
+      .from(orders)
+      .where(
+        and(
+          eq(orders.assignedBuyerId, userId),
+          or(
+            eq(orders.orderStatus, 'ASSIGNED_BUYER'),
+            eq(orders.orderStatus, 'ORDER_INFORMATION_COMPLETE'),
+            eq(orders.orderStatus, 'BUDGETS_IN_PROGRESS'),
+            eq(orders.orderStatus, 'PURCHASE_IN_PROGRESS')
+          ),
+          status ? like(orders.orderStatus, status) : undefined,
+          where
+            ? or(
+              ilike(orders.title, `%${where}%`),
+              ilike(orders.finalClient, `%${where}%`),
+              ilike(orders.finalAddress, `%${where}%`),
+              ilike(orders.notes, `%${where}%`)
+            )
+            : undefined
+        )
+      )
+      .orderBy(desc(orders.createdAt))
+  }
+
+  return []
 }
 
 export async function getAttachments(orderId: number) {

@@ -5,11 +5,14 @@ import { getAnalyticsByOrganizationId, getMonthlyAnalyticsByOrganizationId, getO
 import { Separator } from '@/components/ui/Separator'
 import CategorySelect from './components/CategorySelect'
 import UserAnalyticsTable from './components/UserAnalyticsTable'
+import UnauthorizedError from '@/components/error/UnauthorizedError'
+import { hasPermission } from '@/auth/authorization'
 
 export default async function Page({ searchParams }: any) {
   const session = await auth()
+  if (!session) return
 
-  if (!session?.user.organizationId) return <></>
+  if (!hasPermission(session.user, 'organization', 'read-analytics')) return <UnauthorizedError />
 
   const categoryId = searchParams.categoryId
 
@@ -18,28 +21,28 @@ export default async function Page({ searchParams }: any) {
 
   const categoriesPromise = getOrderCategories()
 
-  const weeklyAnalyticsPromise = getAnalyticsByOrganizationId(session.user.organizationId, {
+  const weeklyAnalyticsPromise = getAnalyticsByOrganizationId(session.user.organizationId!, {
     leftEndDate: new Date(new Date().setDate(currentDate.getDate() - currentDate.getDay())),
     categoryId
   })
-  const monthlyAnalyticsPromise = getAnalyticsByOrganizationId(session.user.organizationId, {
+  const monthlyAnalyticsPromise = getAnalyticsByOrganizationId(session.user.organizationId!, {
     leftEndDate: new Date(new Date(firstOfYear).setMonth(currentDate.getMonth())),
     categoryId
   })
-  const yearlyAnalyticsPromise = getAnalyticsByOrganizationId(session.user.organizationId, {
+  const yearlyAnalyticsPromise = getAnalyticsByOrganizationId(session.user.organizationId!, {
     leftEndDate: firstOfYear,
     categoryId
   })
 
   const organizationAnalyticsMonthlyPromise = getMonthlyAnalyticsByOrganizationId(
-    session.user.organizationId,
+    session.user.organizationId!,
     {
       leftEndDate: new Date(new Date().setMonth(currentDate.getMonth() - 12)),
       categoryId
     }
   )
 
-  const usersAnalyticsPromise = getOrganizationUsersOrderAnalytics(session.user.organizationId, { categoryId })
+  const usersAnalyticsPromise = getOrganizationUsersOrderAnalytics(session.user.organizationId!, { categoryId })
 
   const [
     categories,

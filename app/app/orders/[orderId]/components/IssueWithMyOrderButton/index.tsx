@@ -1,5 +1,6 @@
 'use client'
 
+import { isCentralMarketUser } from '@/auth/authorization'
 import { Button } from '@/components/ui/Button'
 import { useOrderContext } from '@/contexts/OrderContext'
 import { useUser } from '@/contexts/UserContext'
@@ -36,7 +37,7 @@ export default function IssueWithMyOrderButton() {
         addHistoryAction({
           orderId: orderData.id,
           label: 'Orden rechazada',
-          modifiedBy: user.organizationId === 1 ? 'Central Market': 'Usuario'
+          modifiedBy: isCentralMarketUser(user) ? 'Central Market': 'Usuario'
         })
 
       })

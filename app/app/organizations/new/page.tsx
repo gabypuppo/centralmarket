@@ -1,9 +1,13 @@
 import { auth } from '@/auth'
 import NewOrganizationForm from './components/NewOrganizationForm'
+import { hasPermission } from '@/auth/authorization'
+import UnauthorizedError from '@/components/error/UnauthorizedError'
 
 export default async function Page() {
   const session = await auth()
   if (!session) return
+
+  if (!hasPermission(session.user, 'organization', 'create')) return <UnauthorizedError />
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-muted/40">

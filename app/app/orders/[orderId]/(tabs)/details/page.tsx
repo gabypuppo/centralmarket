@@ -8,6 +8,8 @@ import { OrderStatusEnum } from '@/utils/enums'
 import AssignCreatedByButton from './components/AssignCreatedByButton'
 import { Button } from '@/components/ui/Button'
 import { updateOrderAction } from '@/utils/actions'
+import { isCentralMarketUser } from '@/auth/authorization'
+import ConfirmArrivalButton from './components/ConfirmArrivalButton'
 
 interface PageProps {
   params: {
@@ -15,10 +17,10 @@ interface PageProps {
   }
 }
 export default async function Page({ params }: PageProps) {
-  const sessionPromise = auth()
-  const orderPromise = getOrderById(parseInt(params.orderId))
+  const session = await auth()
+  if (!session) return
 
-  const [session, order] = await Promise.all([sessionPromise, orderPromise])
+  const order = await getOrderById(parseInt(params.orderId))
 
   const createdByPromise = order.createdBy ? getUserById(order.createdBy) : null
   const deliveryPointPromise = getDeliveryPointById(order.deliveryPointId!)
@@ -35,25 +37,28 @@ export default async function Page({ params }: PageProps) {
       </CardHeader>
       <CardContent className="space-y-2 flex flex-col gap-4 items-start">
         <div className="flex flex-col gap-1">
-          {
-            order.orderStatus === 'REJECTED' && (
-              <div>
-                <span className='font-bold'>Se genero una disputa para este pedido. Por favor, revisar el mail para mas detalles.</span>
-                <form action={
-                  async () => {
-                    'use server'
-                    await updateOrderAction({
-                      id: order.id,
-                      orderStatus: 'COMPLETED',
-                      updatedAt: new Date()
-                    })
-                  }
-                }>
-                  <Button variant='outline' className='mt-2' type='submit'>Disputa resuelta</Button>
-                </form>
-              </div>
-            )
-          }
+          {order.orderStatus === 'REJECTED' && (
+            <div>
+              <span className="font-bold">
+                Se genero una disputa para este pedido. Por favor, revisar el mail para mas
+                detalles.
+              </span>
+              <form
+                action={async () => {
+                  'use server'
+                  await updateOrderAction({
+                    id: order.id,
+                    orderStatus: 'COMPLETED',
+                    updatedAt: new Date()
+                  })
+                }}
+              >
+                <Button variant="outline" className="mt-2" type="submit">
+                  Disputa resuelta
+                </Button>
+              </form>
+            </div>
+          )}
           <h3 className="font-medium">Detalles de Creación</h3>
           <p className="text-sm">
             Gestionado por:{' '}
@@ -81,6 +86,9 @@ export default async function Page({ params }: PageProps) {
           </p>
           <p className="text-xs italic">La fecha de envío puede ser sujeta a cambios.</p>
         </div>
+        {!isCentralMarketUser(session.user) && order.orderStatus === 'COMPLETED' && (
+          <ConfirmArrivalButton />
+        )}
       </CardContent>
     </Card>
   )

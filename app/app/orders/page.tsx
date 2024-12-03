@@ -1,14 +1,13 @@
 import { auth } from '@/auth'
-import { getOrdersCentralMarket, getOrdersByBuyer, getOrdersByOrganization, getOrdersByUser, type Order, getOrdersCSVData } from '@/db/orders'
+import { getOrdersCentralMarket, getOrdersByOrganization, getOrdersByUser, getOrdersCSVData } from '@/db/orders'
 import Link from 'next/link'
 import DownloadCSV from './components/DownloadCSV'
 import OrdersTable from '@/components/OrdersTable'
+import { hasPermission, isCentralMarketUser } from '@/auth/authorization'
 
 export default async function Page({ searchParams }: any) {
   const session = await auth()
-  const id = session?.user?.id
-  const organizationId = session?.user?.organizationId
-  const role = session?.user?.role
+  if (!session) return
 
   const where1 = searchParams.search1
   const status1 = searchParams.status1
@@ -16,25 +15,23 @@ export default async function Page({ searchParams }: any) {
   const where2 = searchParams.search2
   const status2 = searchParams.status2
 
-  const isCentralMarket = organizationId === 1
+  const isCentralMarket = isCentralMarketUser(session.user)
 
-  let orders: Order[] = []
-  if (isCentralMarket) {
-    orders = await getOrdersByBuyer(id!, where1, status1)
-  } else {
-    orders = await getOrdersByUser(id!, where1, status1)
-  }
+  const ordersPromise = getOrdersByUser(session.user.id!, where1, status1)
+  const ordersByOrganizationPromise = isCentralMarket
+    ? getOrdersCentralMarket(where2, status2)
+    : getOrdersByOrganization(session.user.organizationId!, where2, status2).then((data) =>
+      data.map((order) => ({ ...order, organization: null }))
+    )
+  const ordersCSVDataPromise = getOrdersCSVData(
+    !isCentralMarket ? session.user.organizationId! : undefined
+  )
 
-  let ordersByOrganization: Awaited<ReturnType<typeof getOrdersCentralMarket>>
-
-  if (isCentralMarket) {
-    ordersByOrganization = await getOrdersCentralMarket(where2, status2)
-  } else {
-    const data = await getOrdersByOrganization(organizationId!, where2, status2)
-    ordersByOrganization = data.map((order) => ({ ...order, organization: null }))
-  }
-
-  const ordersCSVData = await getOrdersCSVData(!isCentralMarket ? organizationId! : undefined)
+  const [orders, ordersByOrganization, ordersCSVData] = await Promise.all([
+    ordersPromise,
+    ordersByOrganizationPromise,
+    ordersCSVDataPromise
+  ])
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-muted/40">
@@ -49,7 +46,7 @@ export default async function Page({ searchParams }: any) {
               : 'Visualiza todas tus solicitudes'}
           </p>
           <div className="flex content-between">
-            {!isCentralMarket && (
+            {hasPermission(session.user, 'order', 'create') && (
               <Link
                 href={'orders/new'}
                 className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-min mt-6"
@@ -63,7 +60,7 @@ export default async function Page({ searchParams }: any) {
         <div className="grid gap-6 max-w-6xl w-full mx-auto">
           <div className="overflow-x-auto grid gap-4 lg:gap-px lg:bg-gray-50">
             <OrdersTable orders={orders} id={1} />
-            {role === 'admin' && (
+            {hasPermission(session.user, 'orders', 'read') && (
               <div className="mt-16">
                 <h1 className="font-semibold text-3xl">
                   {isCentralMarket ? 'Todas las solicitudes' : 'Solicitudes de mi organización'}

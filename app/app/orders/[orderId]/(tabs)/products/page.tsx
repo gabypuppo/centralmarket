@@ -13,10 +13,10 @@ export default async function Page({ params }: PageProps) {
   const orderId = parseInt(params.orderId)
   
   const orderPromise = getOrderById(orderId)
-  const productsPromise = getProductsByOrderId(parseInt(params.orderId))
+  const productsPromise = getProductsByOrderId(orderId)
   const attachmentsPromise = getAttachments(orderId)
 
-  const [ order, products, attachments] = await Promise.all([ orderPromise, productsPromise, attachmentsPromise])
+  const [order, products, attachments] = await Promise.all([orderPromise, productsPromise, attachmentsPromise])
 
   return (
     <Card>

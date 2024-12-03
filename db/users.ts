@@ -16,7 +16,7 @@ export const users = pgTable('users', {
   firstName: varchar('first_name', { length: 64 }),
   lastName: varchar('last_name', { length: 64 }),
   organizationId: integer('organization_id'),
-  role: varchar('role', { length: 64 }),
+  role: varchar('role', { length: 64, enum: ['user', 'admin', 'user-cm', 'admin-cm'] }),
   isWhiteListedUser: varchar('is_whitelisted_user', { length: 64 }),
   createdAt: varchar('created_at', { length: 64 }),
   updatedAt: varchar('updated_at', { length: 64 }),

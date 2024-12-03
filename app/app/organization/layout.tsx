@@ -1,5 +1,6 @@
 import TabsNav from '@/app/components/layout/TabsNav'
 import { auth } from '@/auth'
+import { hasPermission } from '@/auth/authorization'
 import UnauthorizedError from '@/components/error/UnauthorizedError'
 import { type ReactNode } from 'react'
 
@@ -8,8 +9,21 @@ interface Props {
 }
 export default async function Layout({ children }: Props) {
   const session = await auth()
+  if (!session) return
   
-  if (session?.user.role !== 'admin') return <UnauthorizedError/>
+  if (!hasPermission(session.user, 'organization', 'read')) return <UnauthorizedError/>
+
+  const tabs: { label: string; href: string }[] = ([] as any[]).concat(
+    hasPermission(session.user, 'organization', 'read-users')
+      ? [{ label: 'Usuarios', href: 'users' }]
+      : [],
+    hasPermission(session.user, 'organization', 'read-delivery-points')
+      ? [{ label: 'Puntos de Entrega', href: 'delivery-points' }]
+      : [],
+    hasPermission(session.user, 'organization', 'read-analytics')
+      ? [{ label: 'Estadísticas', href: 'analytics' }]
+      : []
+  )
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-muted/40">
@@ -22,11 +36,7 @@ export default async function Layout({ children }: Props) {
         </div>
         <div className="grid gap-6 max-w-6xl w-full mx-auto">
           <TabsNav
-            tabs={[
-              { label: 'Usuarios', href: 'users' },
-              { label: 'Puntos de Entrega', href: 'delivery-points' },
-              { label: 'Estadísticas', href: 'analytics' }
-            ]}
+            tabs={tabs}
           />
           {children}
         </div>
