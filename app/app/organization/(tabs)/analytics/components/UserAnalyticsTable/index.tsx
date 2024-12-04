@@ -107,19 +107,19 @@ export default function UserAnalyticsTable({ usersAnalytics }: Props) {
                     {((val = userAnalytics.leadtimes.createdToBudgetedDays) =>
                       Number.isNaN(parseInt(val))
                         ? '-'
-                        : `${parseInt(val)} días ${((parseFloat(val) - parseInt(val)) * 24).toPrecision(1)} hr`)()}
+                        : `${parseInt(val)} días ${((parseFloat(val) - parseInt(val)) * 24).toFixed()} hr`)()}
                   </TableCell>
                   <TableCell>
                     {((val = userAnalytics.leadtimes.budgetedToApprovedDays) =>
                       Number.isNaN(parseInt(val))
                         ? '-'
-                        : `${parseInt(val)} días ${((parseFloat(val) - parseInt(val)) * 24).toPrecision(1)} hr`)()}
+                        : `${parseInt(val)} días ${((parseFloat(val) - parseInt(val)) * 24).toFixed()} hr`)()}
                   </TableCell>
                   <TableCell>
                     {((val = userAnalytics.leadtimes.approvedToArrivedDays) =>
                       Number.isNaN(parseInt(val))
                         ? '-'
-                        : `${parseInt(val)} días ${((parseFloat(val) - parseInt(val)) * 24).toPrecision(1)} hr`)()}
+                        : `${parseInt(val)} días ${((parseFloat(val) - parseInt(val)) * 24).toFixed()} hr`)()}
                   </TableCell>
                 </TableRow>
               ))}
