@@ -35,9 +35,7 @@ export async function POST(request: Request) {
   }
 
   const userData = xlmData.cXML.Request[0].PunchOutSetupRequest[0].Extrinsic
-  const email =
-    userData.find((v: any) => v['$']?.name === 'UserEmail')?.['_'] ??
-    'sanofi@sanofi-staging.com'
+  const email = userData.find((v: any) => v['$']?.name === 'UserEmail')?.['_']
 
   if (!email) {
     const res = `<?xml version="1.0" encoding="UTF-8"?>
