@@ -8,6 +8,8 @@ export async function POST(request: Request) {
   const data = await request.text()
   const xlmData = await xml2js.parseStringPromise(data)
 
+  console.log(JSON.stringify(xlmData))
+
   const organizationDomain =
     xlmData.cXML.Header[0].Sender[0].Credential[0].Identity[0]
   const sharedSecret =
@@ -21,16 +23,15 @@ export async function POST(request: Request) {
     !organization ||
     sharedSecret !== process.env.SANOFI_PUNCHOUT_SHARED_SECRET
   ) {
-    return new Response(
-      `<?xml version="1.0" encoding="UTF-8"?>
+    const res = `<?xml version="1.0" encoding="UTF-8"?>
       <!DOCTYPE cXML SYSTEM "http://xml.cxml.org/schemas/cXML/1.2.014/cXML.dtd">
       <cXML version="1.2.014" xml:lang="en-US" payloadID="${payloadID}" timestamp="${new Date().toISOString()}">
         <Response>
           <Status code="401">Unathorized: Unrecognized SenderID</Status>
         </Response>
-      </cXML>`,
-      { headers: { 'content-type': 'application/xml' } },
-    )
+      </cXML>`
+    console.error(res)
+    return new Response(res, { headers: { 'content-type': 'application/xml' }, })
   }
 
   const userData = xlmData.cXML.Request[0].PunchOutSetupRequest[0].Extrinsic
@@ -39,16 +40,15 @@ export async function POST(request: Request) {
     'sanofi@sanofi-staging.com'
 
   if (!email) {
-    return new Response(
-      `<?xml version="1.0" encoding="UTF-8"?>
+    const res = `<?xml version="1.0" encoding="UTF-8"?>
       <!DOCTYPE cXML SYSTEM "http://xml.cxml.org/schemas/cXML/1.2.014/cXML.dtd">
       <cXML version="1.2.014" xml:lang="en-US" payloadID="${payloadID}" timestamp="${new Date().toISOString()}">
         <Response>
           <Status code="401">Unathorized: UserEmail is Missing</Status>
         </Response>
-      </cXML>`,
-      { headers: { 'content-type': 'application/xml' } },
-    )
+      </cXML>`
+    console.error(res)
+    return new Response(res, { headers: { 'content-type': 'application/xml' }, })
   }
 
   let user
@@ -68,16 +68,16 @@ export async function POST(request: Request) {
   }
 
   if (user?.organizationId !== organization.id) {
-    return new Response(
-      `<?xml version="1.0" encoding="UTF-8"?>
+    const res = `<?xml version="1.0" encoding="UTF-8"?>
       <!DOCTYPE cXML SYSTEM "http://xml.cxml.org/schemas/cXML/1.2.014/cXML.dtd">
       <cXML version="1.2.014" xml:lang="en-US" payloadID="${payloadID}" timestamp="${new Date().toISOString()}">
         <Response>
           <Status code="401">Unathorized: UserEmail is Missing</Status>
         </Response>
-      </cXML>`,
-      { headers: { 'content-type': 'application/xml' } },
-    )
+      </cXML>`
+    console.error(res)
+
+    return new Response(res, { headers: { 'content-type': 'application/xml' }, })
   }
 
   const punchout = {
@@ -92,8 +92,7 @@ export async function POST(request: Request) {
   })
   const url = `${process.env.API_BASE_URL}/auth/punchout?token=${token}`
 
-  return new Response(
-    `<?xml version="1.0" encoding="UTF-8"?>
+  const res = `<?xml version="1.0" encoding="UTF-8"?>
     <!DOCTYPE cXML SYSTEM "http://xml.cxml.org/schemas/cXML/1.2.014/cXML.dtd">
     <cXML version="1.2.014" xml:lang="en-US" payloadID="${payloadID}" timestamp="${new Date().toISOString()}">
       <Response>
@@ -104,7 +103,8 @@ export async function POST(request: Request) {
           </StartPage>
         </PunchOutSetupResponse>
       </Response>
-    </cXML>`,
-    { headers: { 'content-type': 'application/xml' } },
-  )
+    </cXML>`
+  console.log(res)
+
+  return new Response(res, { headers: { 'content-type': 'application/xml' } })
 }
