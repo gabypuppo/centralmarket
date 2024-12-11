@@ -1,17 +1,58 @@
-'use server'
+"use server";
 
-import { getUser, type PunchoutData, setUserOrganization } from '@/db/users'
-import { sendMailBudgetApproved, sendMailBudgetsToRewiew, sendMailBuyerSelected, sendMailGoBackToBudgetsInProgress, sendMailModifyShippingDate, sendMailNewQuestion, sendMailOrderArrived, sendMailOrderCancelled, sendMailOrderCreated, sendMailOrderCreatedCentralMarket, sendMailOrderInformationComplete, sendMailOrderInformationIncomplete, sendMailOrderRejected, sendMailProductUpdated, sendMailValidation } from './mailer'
-import { createOrderWithProducts, type OrderProduct, type Order, addBudgets, getBudgets, removeBudget, updateOrder, type OrderBudget, updateBudget, addAttachments, getAttachments, type OrderHistory, addHistory, getHistory, deleteCreatedByInOrders, removeFile, getProductsByOrderId } from '@/db/orders'
-import { auth } from '@/auth'
-import { createDeliveryPoint, createOrganization, deleteDeliveryPoint, type Organization, type DeliveryPoint, removeOrganization } from '@/db/organizations'
+import { getUser, type PunchoutData, setUserOrganization } from "@/db/users";
+import {
+  sendMailBudgetApproved,
+  sendMailBudgetsToRewiew,
+  sendMailBuyerSelected,
+  sendMailGoBackToBudgetsInProgress,
+  sendMailModifyShippingDate,
+  sendMailNewQuestion,
+  sendMailOrderArrived,
+  sendMailOrderCancelled,
+  sendMailOrderCreated,
+  sendMailOrderCreatedCentralMarket,
+  sendMailOrderInformationComplete,
+  sendMailOrderInformationIncomplete,
+  sendMailOrderRejected,
+  sendMailProductUpdated,
+  sendMailValidation,
+} from "./mailer";
+import {
+  createOrderWithProducts,
+  type OrderProduct,
+  type Order,
+  addBudgets,
+  getBudgets,
+  removeBudget,
+  updateOrder,
+  type OrderBudget,
+  updateBudget,
+  addAttachments,
+  getAttachments,
+  type OrderHistory,
+  addHistory,
+  getHistory,
+  deleteCreatedByInOrders,
+  removeFile,
+  getProductsByOrderId,
+} from "@/db/orders";
+import { auth } from "@/auth";
+import {
+  createDeliveryPoint,
+  createOrganization,
+  deleteDeliveryPoint,
+  type Organization,
+  type DeliveryPoint,
+  removeOrganization,
+} from "@/db/organizations";
 
 export async function getUserAction() {
-  const session = await auth()
-  if (!session?.user) return null
+  const session = await auth();
+  if (!session?.user) return null;
 
-  const user = await getUser(session?.user.email!)
-  return { ...user, punchout: session.user.punchout }
+  const user = await getUser(session?.user.email!);
+  return { ...user, punchout: session.user.punchout };
 }
 
 export async function sendMailBuyerSelectedAction(
@@ -20,7 +61,7 @@ export async function sendMailBuyerSelectedAction(
   assignedBuyerId: number,
   createdAt: Date,
 ) {
-  await sendMailBuyerSelected(orderId, createdBy, assignedBuyerId, createdAt)
+  await sendMailBuyerSelected(orderId, createdBy, assignedBuyerId, createdAt);
 }
 
 export async function sendMailBudgetApprovedAction(
@@ -28,7 +69,7 @@ export async function sendMailBudgetApprovedAction(
   assignedBuyerId: number,
   createdAt: string,
 ) {
-  await sendMailBudgetApproved(orderId, assignedBuyerId, createdAt)
+  await sendMailBudgetApproved(orderId, assignedBuyerId, createdAt);
 }
 
 export async function sendMailNewQuestionAction(
@@ -36,7 +77,7 @@ export async function sendMailNewQuestionAction(
   createdBy: number,
   assignedBuyerId: number,
 ) {
-  await sendMailNewQuestion(orderId, createdBy, assignedBuyerId)
+  await sendMailNewQuestion(orderId, createdBy, assignedBuyerId);
 }
 
 export async function sendMailOrderArrivedAction(
@@ -45,7 +86,7 @@ export async function sendMailOrderArrivedAction(
   assignedBuyerId: number,
   createdAt: Date,
 ) {
-  await sendMailOrderArrived(orderId, createdBy, assignedBuyerId, createdAt)
+  await sendMailOrderArrived(orderId, createdBy, assignedBuyerId, createdAt);
 }
 
 export async function sendMailModifyShippingDateAction(
@@ -53,7 +94,7 @@ export async function sendMailModifyShippingDateAction(
   createdBy: number,
   createdAt: Date,
 ) {
-  await sendMailModifyShippingDate(orderId, createdBy, createdAt)
+  await sendMailModifyShippingDate(orderId, createdBy, createdAt);
 }
 export async function sendMailOrderCreatedAction(
   orderId: number,
@@ -61,7 +102,7 @@ export async function sendMailOrderCreatedAction(
   products: OrderProduct[],
   createdAt: Date,
 ) {
-  await sendMailOrderCreated(orderId, createdBy, products, createdAt)
+  await sendMailOrderCreated(orderId, createdBy, products, createdAt);
 }
 
 export async function sendMailOrderCreatedCentralMarketAction(
@@ -69,7 +110,7 @@ export async function sendMailOrderCreatedCentralMarketAction(
   products: OrderProduct[],
   createdAt: Date,
 ) {
-  await sendMailOrderCreatedCentralMarket(orderId, products, createdAt)
+  await sendMailOrderCreatedCentralMarket(orderId, products, createdAt);
 }
 
 export async function sendMailProductUpdatedAction(
@@ -77,7 +118,7 @@ export async function sendMailProductUpdatedAction(
   createdBy: number,
   assignedBuyerId: number,
 ) {
-  await sendMailProductUpdated(orderId, createdBy, assignedBuyerId)
+  await sendMailProductUpdated(orderId, createdBy, assignedBuyerId);
 }
 
 export async function sendMailOrderRejectedAction(
@@ -85,7 +126,7 @@ export async function sendMailOrderRejectedAction(
   createdBy: number,
   assignedBuyerId: number,
 ) {
-  await sendMailOrderRejected(orderId, createdBy, assignedBuyerId)
+  await sendMailOrderRejected(orderId, createdBy, assignedBuyerId);
 }
 
 export async function sendMailOrderCancelledAction(
@@ -94,7 +135,7 @@ export async function sendMailOrderCancelledAction(
   assignedBuyerId: number,
   createdAt: Date,
 ) {
-  await sendMailOrderCancelled(orderId, createdBy, assignedBuyerId, createdAt)
+  await sendMailOrderCancelled(orderId, createdBy, assignedBuyerId, createdAt);
 }
 
 export async function sendMailValidationAction(
@@ -102,7 +143,7 @@ export async function sendMailValidationAction(
   mail: string,
   firstName: string,
 ) {
-  await sendMailValidation(userId, mail, firstName)
+  await sendMailValidation(userId, mail, firstName);
 }
 export async function sendMailGoBackToBudgetsInProgressAction(
   orderId: number,
@@ -115,7 +156,7 @@ export async function sendMailGoBackToBudgetsInProgressAction(
     createdBy,
     assignedBuyerId,
     createdAt,
-  )
+  );
 }
 
 export async function sendMailBudgetsToRewiewAction(
@@ -124,7 +165,7 @@ export async function sendMailBudgetsToRewiewAction(
   assignedBuyerId: number,
   createdAt: Date,
 ) {
-  await sendMailBudgetsToRewiew(orderId, createdBy, assignedBuyerId, createdAt)
+  await sendMailBudgetsToRewiew(orderId, createdBy, assignedBuyerId, createdAt);
 }
 export async function sendMailOrderInformationCompleteAction(
   orderId: number,
@@ -139,7 +180,7 @@ export async function sendMailOrderInformationCompleteAction(
     assignedBuyerId,
     createdAt,
     products,
-  )
+  );
 }
 
 export async function sendMailOrderInformationIncompleteAction(
@@ -147,123 +188,123 @@ export async function sendMailOrderInformationIncompleteAction(
   createdBy: number,
   createdAt: Date,
 ) {
-  await sendMailOrderInformationIncomplete(orderId, createdBy, createdAt)
+  await sendMailOrderInformationIncomplete(orderId, createdBy, createdAt);
 }
 export async function createOrganizationAction(
-  organization: Pick<Organization, 'name' | 'domains'>,
+  organization: Pick<Organization, "name" | "domains">,
 ) {
   return await createOrganization({
     ...organization,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-  })
+  });
 }
 
 export async function removeOrganizationAction(organizationId: number) {
-  return await removeOrganization(organizationId)
+  return await removeOrganization(organizationId);
 }
 
 export async function setUserOrganizationAction(
   userId: number,
   organizationId: number | null,
 ) {
-  await setUserOrganization(userId, organizationId)
+  await setUserOrganization(userId, organizationId);
 }
 
 export async function deleteCreatedByInOrdersAction(userId: number) {
-  await deleteCreatedByInOrders(userId)
+  await deleteCreatedByInOrders(userId);
 }
 
 export async function createOrderWithProductsAction(
   orderPartial: Pick<
     Order,
-    | 'organizationId'
-    | 'createdBy'
-    | 'title'
-    | 'deliveryPointId'
-    | 'shippingMethod'
-    | 'notes'
-    | 'finalClient'
-    | 'shippingDate'
-    | 'finalAddress'
+    | "organizationId"
+    | "createdBy"
+    | "title"
+    | "deliveryPointId"
+    | "shippingMethod"
+    | "notes"
+    | "finalClient"
+    | "shippingDate"
+    | "finalAddress"
   >,
-  products: Omit<OrderProduct, 'id' | 'orderId'>[],
+  products: Omit<OrderProduct, "id" | "orderId">[],
   punchout?: PunchoutData,
 ) {
-  const order = await createOrderWithProducts(orderPartial, products)
+  const order = await createOrderWithProducts(orderPartial, products);
 
-  const productsData = await getProductsByOrderId(order.id)
+  const productsData = await getProductsByOrderId(order.id);
 
   if (punchout?.payloadID) {
     await punchoutOrderMessage(punchout, order, productsData).catch(
       console.error,
-    )
+    );
   }
 
-  return order
+  return order;
 }
 
 export async function getBudgetsAction(orderId: number) {
-  return await getBudgets(orderId)
+  return await getBudgets(orderId);
 }
 
 export async function updateOrderAction(
-  order: Pick<Order, 'id'> & Partial<Order>,
+  order: Pick<Order, "id"> & Partial<Order>,
 ) {
-  return await updateOrder(order)
+  return await updateOrder(order);
 }
 
 export async function addBudgetsAction(orderId: number, formData: FormData) {
-  const files = Array.from(formData.values()) as File[]
+  const files = Array.from(formData.values()) as File[];
 
-  await addBudgets(orderId, files)
+  await addBudgets(orderId, files);
 }
 
 export async function updateBudgetsAction(
-  budget: Pick<OrderBudget, 'id'> & Partial<OrderBudget>,
+  budget: Pick<OrderBudget, "id"> & Partial<OrderBudget>,
 ) {
-  return await updateBudget(budget)
+  return await updateBudget(budget);
 }
 
 export async function removeBudgetAction(budgetId: number) {
-  await removeBudget(budgetId)
+  await removeBudget(budgetId);
 }
 
 export async function getAttachmentsAction(orderId: number) {
-  return await getAttachments(orderId)
+  return await getAttachments(orderId);
 }
 
 export async function addAttachmentsAction(
   orderId: number,
   formData: FormData,
 ) {
-  const files = Array.from(formData.values()) as File[]
+  const files = Array.from(formData.values()) as File[];
 
-  return await addAttachments(orderId, files)
+  return await addAttachments(orderId, files);
 }
 
 export async function createDeliveryPointAction(
-  DeliveryPoint: Omit<DeliveryPoint, 'id'>,
+  DeliveryPoint: Omit<DeliveryPoint, "id">,
 ) {
-  return await createDeliveryPoint(DeliveryPoint)
+  return await createDeliveryPoint(DeliveryPoint);
 }
 
 export async function deleteDeliveryPointAction(DeliveryPointId: number) {
-  return await deleteDeliveryPoint(DeliveryPointId)
+  return await deleteDeliveryPoint(DeliveryPointId);
 }
 
 export async function getHistoryAction(orderId: number) {
-  return await getHistory(orderId)
+  return await getHistory(orderId);
 }
 
 export async function addHistoryAction(
-  history: Omit<OrderHistory, 'id' | 'date'>,
+  history: Omit<OrderHistory, "id" | "date">,
 ) {
-  return await addHistory(history)
+  return await addHistory(history);
 }
 
 export async function removeFileAction(fileId: number) {
-  return await removeFile(fileId)
+  return await removeFile(fileId);
 }
 
 async function punchoutOrderMessage(
@@ -285,31 +326,31 @@ async function punchoutOrderMessage(
           <Description xml:lang="en-US">${product.product}</Description>
         </ItemDetail>
       </ItemIn>
-      `
-    return acc + value
-  }, '')
+      `;
+    return acc + value;
+  }, "");
 
   const total = products.reduce((acc, product) => {
-    const productPrice = Number(product.estimatedCost)
-    return acc + productPrice * Number(product.quantity)
-  }, 0)
+    const productPrice = Number(product.estimatedCost);
+    return acc + productPrice * Number(product.quantity);
+  }, 0);
 
   const request = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE cXML SYSTEM "http://xml.cxml.org/schemas/cXML/1.2.014/cXML.dtd">
 <cXML payloadID="${data.payloadID}" xml:lang="en-US" timestamp="${new Date().toISOString()}" version="1.2.014">
   <Header>
     <From>
-      <Credential domain="DUNS">
+      <Credential domain="${process.env.SANOFI_DOMAIN}">
         <Identity>${process.env.CENTRAL_MARKET_SANOFI_ID}</Identity>
       </Credential>
     </From>
     <To>
-      <Credential domain="DUNS">
-        <Identity>sanofi.com</Identity>
+      <Credential domain="${process.env.SANOFI_DOMAIN}">
+        <Identity>${process.env.SANOFI_DOMAIN}</Identity>
       </Credential>
     </To>
     <Sender>
-     <Credential domain="DUNS">
+     <Credential domain="${process.env.SANOFI_DOMAIN}">
         <Identity>${process.env.CENTRAL_MARKET_SANOFI_ID}</Identity>
         <SharedSecret>${process.env.SANOFI_PUNCHOUT_SHARED_SECRET}</SharedSecret>
       </Credential>
@@ -321,19 +362,19 @@ async function punchoutOrderMessage(
       <BuyerCookie>${data.buyerCookie}</BuyerCookie>
       <PunchOutOrderMessageHeader operationAllowed="create" quoteStatus="pending">
         <Total>
-					<Money currency="${products[0]?.estimatedCostCurrency?.toUpperCase() ?? 'ARS'}">${total}</Money>
+					<Money currency="${products[0]?.estimatedCostCurrency?.toUpperCase() ?? "ARS"}">${total}</Money>
 				</Total>
       </PunchOutOrderMessageHeader>
       ${items}
     </PunchOutOrderMessage>
   </Message>
-</cXML>`
+</cXML>`;
 
-  console.log(request)
+  console.log(request);
 
-  await fetch(data.checkoutReditrectTo, {
-    method: 'post',
+  await fetch(data.checkoutRedirectTo, {
+    method: "post",
     body: request,
-    headers: { 'Content-Type': 'application/xml' },
-  })
+    headers: { "Content-Type": "application/xml" },
+  });
 }
