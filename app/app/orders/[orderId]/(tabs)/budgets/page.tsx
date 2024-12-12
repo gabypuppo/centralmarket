@@ -44,7 +44,9 @@ export default async function Page({ params }: PageProps) {
         id: order.id,
         orderStatus: 'BUDGETS_TO_REVIEW',
         budgetedAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        followUpMail1DaySent: false,
+        followUpMail3DaySent: false
       })
     }
 

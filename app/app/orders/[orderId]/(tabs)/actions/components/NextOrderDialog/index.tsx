@@ -29,22 +29,21 @@ export default function NextOrderStateDialog({ children, disabled = false }: Nex
     if (!user) return
 
     setIsUploading(true)
-    updateOrderAction({
-      ...orderData,
-      orderStatus: newStatus,
-      approvedAt: newStatus === 'COMPLETED' ? new Date() : undefined,
-      updatedAt: new Date()
-    })
-      .then((res) => {
-        setContextOrderData(res[0])
-        return addHistoryAction({
-          orderId: orderData.id,
-          label: getFormattedLabel(newStatus),
-          modifiedBy: isCentralMarketUser(user) ? 'Central Market' : 'Usuario'
-        })
+    Promise.all([
+      updateOrderAction({
+        id: orderData.id,
+        orderStatus: newStatus,
+        approvedAt: newStatus === 'COMPLETED' ? new Date() : undefined,
+        updatedAt: new Date()
+      }),
+      addHistoryAction({
+        orderId: orderData.id,
+        label: getFormattedLabel(newStatus),
+        modifiedBy: isCentralMarketUser(user) ? 'Central Market' : 'Usuario'
       })
-      .then(() => {
-        router.refresh()
+    ])
+      .then((res) => {
+        setContextOrderData(res[0][0])
       })
       .catch((err) => {
         console.error(err)
@@ -52,6 +51,7 @@ export default function NextOrderStateDialog({ children, disabled = false }: Nex
       .finally(() => {
         setIsUploading(false)
         setIsOpen(false)
+        router.refresh()
       })
   }
 

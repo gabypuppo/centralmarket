@@ -34,7 +34,7 @@ const getFormattedColors = (label: OrderStatus) => {
     REJECTED: 'bg-red-800',                     // Rojo más oscuro para rechazo
   }
 
-  return colorDictionary[label] ?? 'bg-gray-700'
+  return (colorDictionary[label] ?? 'bg-gray-700') + ' text-center'
 }
 
 

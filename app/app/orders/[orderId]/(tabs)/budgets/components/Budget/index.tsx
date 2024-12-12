@@ -14,7 +14,7 @@ import { isCentralMarketUser } from '@/auth/authorization'
 
 interface BudgetProps {
   budget: OrderBudget
-  selectedId: number | undefined
+  selectedId: number | null
   setSelectedId: (budgetId: number) => void
 }
 export default function Budget({ budget, selectedId, setSelectedId }: BudgetProps) {

@@ -14,6 +14,9 @@ export default async function Layout({ children }: { children: React.ReactNode }
         <p className="text-center text-muted-foreground">
           Este usuario no esta asignado a ninguna organización.
         </p>
+        <div className="mt-4 flex justify-center">
+          <SignOutButton />
+        </div>
       </NotFoundError>
     )
 
