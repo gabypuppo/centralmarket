@@ -60,7 +60,7 @@ export default async function Page({ searchParams }: any) {
         <div className="grid gap-6 max-w-6xl w-full mx-auto">
           <div className="overflow-x-auto grid gap-4 lg:gap-px lg:bg-gray-50">
             <OrdersTable orders={orders} id={1} />
-            {hasPermission(session.user, 'orders', 'read') && (
+            {hasPermission(session.user, 'orders', 'read', orders) && (
               <div className="mt-16">
                 <h1 className="font-semibold text-3xl">
                   {isCentralMarket ? 'Todas las solicitudes' : 'Solicitudes de mi organización'}
