@@ -19,13 +19,13 @@ export default function BudgetList({ budgets }: BudgetListProps) {
   const { user } = useUser()
   const { contextOrderData: orderData, setContextOrderData } = useOrderContext()
 
-  const [selectedId, setSelectedId] = useState<number>()
+  const [selectedId, setSelectedId] = useState<number | null>(orderData.selectedBudgetId)
   const [isUploading, setIsUploading] = useState(false)
 
   useEffect(() => {
     const selectedBudget = budgets.find((budget) => budget.id === selectedId)
 
-    if (selectedBudget?.isRejected) setSelectedId(undefined)
+    if (selectedBudget?.isRejected) setSelectedId(null)
   }, [budgets, selectedId])
 
   const isCentralMarket = !!user && isCentralMarketUser(user)
@@ -82,7 +82,7 @@ export default function BudgetList({ budgets }: BudgetListProps) {
         <Button
           className="mt-6"
           onClick={updateSelectedBudgetId}
-          disabled={isUploading || selectedId === undefined}
+          disabled={isUploading || selectedId === null}
         >
           Aceptar Presupuesto
         </Button>
