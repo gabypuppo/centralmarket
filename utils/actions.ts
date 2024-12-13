@@ -357,7 +357,7 @@ async function punchoutOrderMessage(
       <UserAgent>Coupa Procurement 1.0</UserAgent>
     </Sender>
   </Header>
-  <Message deploymentMode="production">
+  <Message deploymentMode="development">
     <PunchOutOrderMessage>
       <BuyerCookie>${data.buyerCookie}</BuyerCookie>
       <PunchOutOrderMessageHeader operationAllowed="create" quoteStatus="pending">
