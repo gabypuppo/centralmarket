@@ -371,10 +371,11 @@ async function punchoutOrderMessage(
 </cXML>`;
 
   console.log(request);
+  console.log(data);
 
   await fetch(data.checkoutRedirectTo, {
     method: "post",
     body: request,
     headers: { "Content-Type": "application/xml" },
-  });
+  }).then(console.log);
 }
