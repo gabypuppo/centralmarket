@@ -10,7 +10,7 @@ import RejectBudgetDialog from '../RejectBudgetDialog'
 import { Button } from '@/components/ui/Button'
 import type { OrderBudget } from '@/db/orders'
 import { useRouter } from 'next/navigation'
-import { isCentralMarketUser } from '@/auth/authorization'
+import { hasPermission, isCentralMarketUser } from '@/auth/authorization'
 
 interface BudgetProps {
   budget: OrderBudget
@@ -53,7 +53,10 @@ export default function Budget({ budget, selectedId, setSelectedId }: BudgetProp
   return file ? (
     <div className="flex flex-col items-center gap-4">
       <a href={budget.fileUrl ?? ''} target="_blank" className="cursor-pointer">
-        <FileDisplay file={file} remove={isCentralMarket ? handleRemove : undefined} />
+        <FileDisplay
+          file={file}
+          remove={hasPermission(user!, 'order', 'handle', orderData) ? handleRemove : undefined}
+        />
       </a>
       {budget.isRejected ? (
         <AlertDialog message={'Motivo: ' + budget.rejectionReason} onConfirm={async () => {}}>
@@ -79,17 +82,18 @@ export default function Budget({ budget, selectedId, setSelectedId }: BudgetProp
           )}
           {orderData.selectedBudgetId === null && (
             <RejectBudgetDialog budgetId={budget.id}>
-              <Button className='text-sm' variant="destructive">Rechazar</Button>
+              <Button className="text-sm" variant="destructive">
+                Rechazar
+              </Button>
             </RejectBudgetDialog>
           )}
         </>
       ) : (
-        selectedId === budget.id ||
-        (orderData.selectedBudgetId === budget.id && (
+        (selectedId === budget.id || orderData.selectedBudgetId === budget.id) && (
           <Button variant="secondary" className="text-xs" disabled>
             Seleccionado
           </Button>
-        ))
+        )
       )}
     </div>
   ) : (
