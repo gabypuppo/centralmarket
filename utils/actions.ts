@@ -378,6 +378,6 @@ async function punchoutOrderMessage(
     body: request,
     headers: { "Content-Type": "application/xml" },
   })
-    .then((r) => r.json())
+    .then((r) => r.text())
     .then(console.log);
 }
