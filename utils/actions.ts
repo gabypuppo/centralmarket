@@ -376,7 +376,7 @@ async function punchoutOrderMessage(
   await fetch(data.checkoutRedirectTo, {
     method: "post",
     body: request,
-    headers: { "Content-Type": "application/xml" },
+    headers: { "Content-Type": "text/xml" },
   })
     .then((r) => r.text())
     .then(console.log);
