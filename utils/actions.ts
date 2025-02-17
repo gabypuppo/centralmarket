@@ -341,12 +341,12 @@ async function punchoutOrderMessage(
   <Header>
     <From>
       <Credential domain="${process.env.SANOFI_DOMAIN}">
-        <Identity>${process.env.CENTRAL_MARKET_SANOFI_ID}</Identity>
+        <Identity>${process.env.SANOFI_DOMAIN}</Identity>
       </Credential>
     </From>
     <To>
       <Credential domain="${process.env.SANOFI_DOMAIN}">
-        <Identity>${process.env.CENTRAL_MARKET_SANOFI_ID}</Identity>
+        <Identity>${process.env.SANOFI_DOMAIN}</Identity>
       </Credential>
     </To>
     <Sender>
