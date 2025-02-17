@@ -346,7 +346,7 @@ async function punchoutOrderMessage(
     </From>
     <To>
       <Credential domain="${process.env.SANOFI_DOMAIN}">
-        <Identity>${process.env.SANOFI_DOMAIN}</Identity>
+        <Identity>${process.env.CENTRAL_MARKET_SANOFI_ID}</Identity>
       </Credential>
     </To>
     <Sender>
