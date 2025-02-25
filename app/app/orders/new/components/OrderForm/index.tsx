@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import { Separator } from '@/components/ui/Separator'
 import { useUser } from '@/contexts/UserContext'
-import { type OrderProduct } from '@/db/orders'
+import { type Order, type OrderProduct } from '@/db/orders'
 import type { DeliveryPoint } from '@/db/organizations'
+import { type PunchoutData } from '@/db/users'
 import { cn } from '@/utils'
 import { addAttachmentsAction, addHistoryAction, createOrderWithProductsAction, sendMailOrderCreatedAction, sendMailOrderCreatedCentralMarketAction } from '@/utils/actions'
 import { useRouter } from 'next/navigation'
@@ -63,6 +64,81 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
     setProducts(newProducts)
   }
 
+  async function punchoutOrderMessage(
+    data: PunchoutData,
+    order: Order,
+    products: OrderProduct[],
+  ) {
+    const items = products.reduce((acc, product) => {
+      const value = `<ItemIn quantity="${product.quantity}">
+          <ItemID>
+            <SupplierPartID>${order.id}</SupplierPartID>
+            <SupplierPartAuxiliaryID>${product.id}</SupplierPartAuxiliaryID>
+          </ItemID>
+          <ItemDetail>
+            <UnitPrice>
+              <Money currency="${product.estimatedCostCurrency?.toUpperCase()}">${product.estimatedCost}</Money>
+            </UnitPrice>
+            <UnitOfMeasure>${product.quantityUnit}</UnitOfMeasure>
+            <Description xml:lang="en-US">${product.product}</Description>
+          </ItemDetail>
+        </ItemIn>
+        `
+      return acc + value
+    }, '')
+  
+    const total = products.reduce((acc, product) => {
+      const productPrice = Number(product.estimatedCost)
+      return acc + productPrice * Number(product.quantity)
+    }, 0)
+  
+    const request = `<?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE cXML SYSTEM "http://xml.cxml.org/schemas/cXML/1.2.014/cXML.dtd">
+  <cXML payloadID="${data.payloadID}" xml:lang="en-US" timestamp="${new Date().toISOString()}" version="1.2.014">
+    <Header>
+      <From>
+        <Credential domain="${process.env.SANOFI_DOMAIN}">
+          <Identity>${process.env.SANOFI_DOMAIN}</Identity>
+        </Credential>
+      </From>
+      <To>
+        <Credential domain="${process.env.SANOFI_DOMAIN}">
+          <Identity>${process.env.CENTRAL_MARKET_SANOFI_ID}</Identity>
+        </Credential>
+      </To>
+      <Sender>
+       <Credential domain="${process.env.SANOFI_DOMAIN}">
+          <Identity>${process.env.SANOFI_DOMAIN}</Identity>
+          <SharedSecret>${process.env.SANOFI_PUNCHOUT_SHARED_SECRET}</SharedSecret>
+        </Credential>
+        <UserAgent>Coupa Procurement 1.0</UserAgent>
+      </Sender>
+    </Header>
+    <Message deploymentMode="development">
+      <PunchOutOrderMessage>
+        <BuyerCookie>${data.buyerCookie}</BuyerCookie>
+        <PunchOutOrderMessageHeader operationAllowed="create" quoteStatus="pending">
+          <Total>
+            <Money currency="${products[0]?.estimatedCostCurrency?.toUpperCase() ?? 'ARS'}">${total}</Money>
+          </Total>
+        </PunchOutOrderMessageHeader>
+        ${items}
+      </PunchOutOrderMessage>
+    </Message>
+  </cXML>`
+  
+    console.log(request)
+    console.log(data)
+  
+    await fetch(data.checkoutRedirectTo, {
+      method: 'post',
+      body: request,
+      headers: { 'Content-Type': 'text/xml' },
+    })
+      .then((r) => r.text())
+      .then(console.log)
+  }
+
   useEffect(() => {
     if (!shippingDateString) return
 
@@ -92,32 +168,38 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
       finalClient,
       finalAddress,
       title
-    }, products, user.punchout)
+    }, products)
       .then((res) => {
         const formData = new FormData()
         files?.forEach((file, i) => {
           formData.append(`file-${i}`, file)
         })
 
+        if (user.punchout?.payloadID) {
+          punchoutOrderMessage(user.punchout, res[0], res[1]).catch(
+            console.error,
+          )
+        }
+
         return Promise.all([
-          addAttachmentsAction(res.id, formData),
+          addAttachmentsAction(res[0].id, formData),
           addHistoryAction({
-            orderId: res.id,
+            orderId: res[0].id,
             label: 'Solicitud creada',
             modifiedBy: isCentralMarketUser(user) ? 'Central Market' : 'Usuario'
           }),
           sendMailOrderCreatedAction(
-            res.id,
+            res[0].id,
             user.id,
             products.map(p => ({
-              ...p, id: 0, orderId: res.id
+              ...p, id: 0, orderId: res[0].id
             })),
             new Date()
           ),
           sendMailOrderCreatedCentralMarketAction(
-            res.id,
+            res[0].id,
             products.map(p => ({
-              ...p, id: 0, orderId: res.id
+              ...p, id: 0, orderId: res[0].id
             })),
             new Date()
           )
