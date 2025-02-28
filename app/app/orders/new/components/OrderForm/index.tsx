@@ -97,19 +97,19 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
   <cXML payloadID="${data.payloadID}" xml:lang="en-US" timestamp="${new Date().toISOString()}" version="1.2.014">
     <Header>
       <From>
-        <Credential domain="${process.env.SANOFI_DOMAIN}">
-          <Identity>${process.env.SANOFI_DOMAIN}</Identity>
+        <Credential domain="sanofi-staging.com">
+          <Identity>sanofi-staging.com</Identity>
         </Credential>
       </From>
       <To>
-        <Credential domain="${process.env.SANOFI_DOMAIN}">
-          <Identity>${process.env.CENTRAL_MARKET_SANOFI_ID}</Identity>
+        <Credential domain="sanofi-staging.com">
+          <Identity>AR71688228</Identity>
         </Credential>
       </To>
       <Sender>
-       <Credential domain="${process.env.SANOFI_DOMAIN}">
-          <Identity>${process.env.SANOFI_DOMAIN}</Identity>
-          <SharedSecret>${process.env.SANOFI_PUNCHOUT_SHARED_SECRET}</SharedSecret>
+       <Credential domain="sanofi-staging.com">
+          <Identity>sanofi-staging.com</Identity>
+          <SharedSecret>kldfhadsfkjasdfk</SharedSecret>
         </Credential>
         <UserAgent>Coupa Procurement 1.0</UserAgent>
       </Sender>
