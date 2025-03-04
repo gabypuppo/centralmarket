@@ -126,17 +126,21 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
       </PunchOutOrderMessage>
     </Message>
   </cXML>`
+
+    const formData = new URLSearchParams()
+    formData.append('xml', request)
   
     console.log(request)
     console.log(data)
   
     await fetch(data.checkoutRedirectTo, {
       method: 'post',
-      body: request,
-      headers: { 'Content-Type': 'text/xml' },
+      body: formData.toString(),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     })
       .then((r) => r.text())
       .then(console.log)
+      .catch(console.error)
   }
 
   useEffect(() => {
