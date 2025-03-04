@@ -1,6 +1,6 @@
 "use server";
 
-import { getUser, setUserOrganization } from "@/db/users";
+import { getUser, type PunchoutData, setUserOrganization } from "@/db/users";
 import {
   sendMailBudgetApproved,
   sendMailBudgetsToRewiew,
@@ -229,12 +229,17 @@ export async function createOrderWithProductsAction(
     | "finalAddress"
   >,
   products: Omit<OrderProduct, "id" | "orderId">[],
-): Promise<[Order, OrderProduct[]]> {
+  punchout?: PunchoutData,
+) {
   const order = await createOrderWithProducts(orderPartial, products);
 
   const productsData = await getProductsByOrderId(order.id);
-
-  return [order, productsData];
+  if (punchout?.payloadID) {
+    await punchoutOrderMessage(punchout, order, productsData).catch(
+      console.error,
+    );
+  }
+  return order;
 }
 
 export async function getBudgetsAction(orderId: number) {
@@ -298,4 +303,85 @@ export async function addHistoryAction(
 
 export async function removeFileAction(fileId: number) {
   return await removeFile(fileId);
+}
+
+async function punchoutOrderMessage(
+  data: PunchoutData,
+
+  order: Order,
+
+  products: OrderProduct[],
+) {
+  const items = products.reduce((acc, product) => {
+    const value = `<ItemIn quantity="${product.quantity}">
+        <ItemID>
+          <SupplierPartID>${order.id}</SupplierPartID>
+          <SupplierPartAuxiliaryID>${product.id}</SupplierPartAuxiliaryID>
+        </ItemID>
+        <ItemDetail>
+          <UnitPrice>
+            <Money currency="${product.estimatedCostCurrency?.toUpperCase()}">${product.estimatedCost}</Money>
+          </UnitPrice>
+          <UnitOfMeasure>${product.quantityUnit}</UnitOfMeasure>
+          <Description xml:lang="en-US">${product.product}</Description>
+        </ItemDetail>
+      </ItemIn>`;
+
+    return acc + value;
+  }, "");
+
+  const total = products.reduce((acc, product) => {
+    const productPrice = Number(product.estimatedCost);
+
+    return acc + productPrice * Number(product.quantity);
+  }, 0);
+
+  const request = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE cXML SYSTEM "http://xml.cxml.org/schemas/cXML/1.2.014/cXML.dtd">
+<cXML payloadID="${data.payloadID}" xml:lang="en-US" timestamp="${new Date().toISOString()}" version="1.2.014">
+  <Header>
+    <From>
+      <Credential domain="${process.env.SANOFI_DOMAIN}">
+        <Identity>${process.env.SANOFI_DOMAIN}</Identity>
+      </Credential>
+    </From>
+    <To>
+      <Credential domain="${process.env.SANOFI_DOMAIN}">
+        <Identity>${process.env.CENTRAL_MARKET_SANOFI_ID}</Identity>
+      </Credential>
+    </To>
+    <Sender>
+     <Credential domain="${process.env.SANOFI_DOMAIN}">
+        <Identity>${process.env.SANOFI_DOMAIN}</Identity>
+        <SharedSecret>${process.env.SANOFI_PUNCHOUT_SHARED_SECRET}</SharedSecret>
+      </Credential>
+      <UserAgent>Coupa Procurement 1.0</UserAgent>
+    </Sender>
+  </Header>
+  <Message deploymentMode="development">
+    <PunchOutOrderMessage>
+      <BuyerCookie>${data.buyerCookie}</BuyerCookie>
+      <PunchOutOrderMessageHeader operationAllowed="create" quoteStatus="pending">
+        <Total>
+					<Money currency="${products[0]?.estimatedCostCurrency?.toUpperCase() ?? "ARS"}">${total}</Money>
+				</Total>
+      </PunchOutOrderMessageHeader>
+      ${items}
+    </PunchOutOrderMessage>
+  </Message>
+</cXML>`;
+
+  console.log(request);
+  console.log(data);
+
+  const formData = new URLSearchParams();
+  formData.append("xml", request);
+
+  await fetch(data.checkoutRedirectTo, {
+    method: "post",
+    body: formData.toString(),
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+  })
+    .then((r) => r.text())
+    .then(console.log);
 }
