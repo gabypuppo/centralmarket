@@ -64,76 +64,93 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
     setProducts(newProducts)
   }
 
+  // async function punchoutOrderMessage(
+  //   data: PunchoutData,
+  //   order: Order,
+  //   products: OrderProduct[],
+  // ) {
+  //   if(!data?.payloadID){
+  //     return
+  //   }
+
+  //   const items = products.reduce((acc, product) => {
+  //     const value = `<ItemIn quantity="${product.quantity}">
+  //         <ItemID>
+  //           <SupplierPartID>${order.id}</SupplierPartID>
+  //           <SupplierPartAuxiliaryID>${product.id}</SupplierPartAuxiliaryID>
+  //         </ItemID>
+  //         <ItemDetail>
+  //           <UnitPrice>
+  //             <Money currency="${product.estimatedCostCurrency?.toUpperCase()}">${product.estimatedCost}</Money>
+  //           </UnitPrice>
+  //           <UnitOfMeasure>${product.quantityUnit}</UnitOfMeasure>
+  //           <Description xml:lang="en-US">${product.product}</Description>
+  //         </ItemDetail>
+  //       </ItemIn>
+  //       `
+  //     return acc + value
+  //   }, '')
+
+  //   const total = products.reduce((acc, product) => {
+  //     const productPrice = Number(product.estimatedCost)
+  //     return acc + productPrice * Number(product.quantity)
+  //   }, 0)
+
+  //   const request = `<?xml version="1.0" encoding="UTF-8"?>
+  // <!DOCTYPE cXML SYSTEM "http://xml.cxml.org/schemas/cXML/1.2.014/cXML.dtd">
+  // <cXML payloadID="${data.payloadID}" xml:lang="en-US" timestamp="${new Date().toISOString()}" version="1.2.014">
+  //   <Header>
+  //     <Sender>
+  //      <Credential domain="sanofi-staging.com">
+  //         <Identity>AR71688228</Identity>
+  //       </Credential>
+  //       <UserAgent>Coupa Procurement 1.0</UserAgent>
+  //     </Sender>
+  //   </Header>
+  //   <Message>
+  //     <PunchOutOrderMessage>
+  //       <BuyerCookie>${data.buyerCookie}</BuyerCookie>
+  //       <PunchOutOrderMessageHeader operationAllowed="create" quoteStatus="pending">
+  //         <Total>
+  //           <Money currency="${products[0]?.estimatedCostCurrency?.toUpperCase() ?? 'ARS'}">${total}</Money>
+  //         </Total>
+  //       </PunchOutOrderMessageHeader>
+  //       ${items}
+  //     </PunchOutOrderMessage>
+  //   </Message>
+  // </cXML>`
+
+  //   const formData = new URLSearchParams()
+  //   formData.append('cXML-urlencoded', request)
+
+  //   console.log(request)
+  //   console.log(data)
+
+  //   await fetch('https://sanofi-test.coupahost.com/punchout/checkout?id=769', {
+  //     method: 'post',
+  //     body: formData.toString(),
+  //     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  //   })
+  //     .then((r) => r.text())
+  //     .then(console.log)
+  //     .catch(console.error)
+  // }
+
   async function punchoutOrderMessage(
     data: PunchoutData,
     order: Order,
-    products: OrderProduct[],
   ) {
     if(!data?.payloadID){
       return
     }
 
-    const items = products.reduce((acc, product) => {
-      const value = `<ItemIn quantity="${product.quantity}">
-          <ItemID>
-            <SupplierPartID>${order.id}</SupplierPartID>
-            <SupplierPartAuxiliaryID>${product.id}</SupplierPartAuxiliaryID>
-          </ItemID>
-          <ItemDetail>
-            <UnitPrice>
-              <Money currency="${product.estimatedCostCurrency?.toUpperCase()}">${product.estimatedCost}</Money>
-            </UnitPrice>
-            <UnitOfMeasure>${product.quantityUnit}</UnitOfMeasure>
-            <Description xml:lang="en-US">${product.product}</Description>
-          </ItemDetail>
-        </ItemIn>
-        `
-      return acc + value
-    }, '')
-
-    const total = products.reduce((acc, product) => {
-      const productPrice = Number(product.estimatedCost)
-      return acc + productPrice * Number(product.quantity)
-    }, 0)
-
-    const request = `<?xml version="1.0" encoding="UTF-8"?>
-  <!DOCTYPE cXML SYSTEM "http://xml.cxml.org/schemas/cXML/1.2.014/cXML.dtd">
-  <cXML payloadID="${data.payloadID}" xml:lang="en-US" timestamp="${new Date().toISOString()}" version="1.2.014">
-    <Header>
-      <Sender>
-       <Credential domain="sanofi-staging.com">
-          <Identity>AR71688228</Identity>
-        </Credential>
-        <UserAgent>Coupa Procurement 1.0</UserAgent>
-      </Sender>
-    </Header>
-    <Message>
-      <PunchOutOrderMessage>
-        <BuyerCookie>${data.buyerCookie}</BuyerCookie>
-        <PunchOutOrderMessageHeader operationAllowed="create" quoteStatus="pending">
-          <Total>
-            <Money currency="${products[0]?.estimatedCostCurrency?.toUpperCase() ?? 'ARS'}">${total}</Money>
-          </Total>
-        </PunchOutOrderMessageHeader>
-        ${items}
-      </PunchOutOrderMessage>
-    </Message>
-  </cXML>`
-
-    const formData = new URLSearchParams()
-    formData.append('cXML-urlencoded', request)
-
-    console.log(request)
-    console.log(data)
-
-    await fetch('https://sanofi-test.coupahost.com/punchout/checkout?id=769', {
-      method: 'post',
-      body: formData.toString(),
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    const response = await fetch('/api/punchout/order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', },
+      body: JSON.stringify({ orderId: order.id, punchoutData: data }),
     })
-      .then((r) => r.text())
-      .then(console.log)
-      .catch(console.error)
+
+    console.log(response)
   }
 
   useEffect(() => {
@@ -173,7 +190,7 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
         })
 
         return Promise.all([
-          punchoutOrderMessage(user.punchout ?? {} as PunchoutData, res[0], res[1]).catch(
+          punchoutOrderMessage(user.punchout ?? {} as PunchoutData, res[0]).catch(
             console.error,
           ),
           addAttachmentsAction(res[0].id, formData),
