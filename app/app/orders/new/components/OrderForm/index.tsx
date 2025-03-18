@@ -193,7 +193,7 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
         })
 
         return Promise.all([
-          punchoutOrderMessage(user.punchout ?? {} as PunchoutData, res[0]).catch(
+          punchoutOrderMessage(user.punchout ?? {} as PunchoutData, res[0], res[1]).catch(
             console.error,
           ),
           addAttachmentsAction(res[0].id, formData),
