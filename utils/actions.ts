@@ -374,12 +374,15 @@ export async function punchoutOrderMessage(
   console.log(data);
 
   const formData = new URLSearchParams();
-  formData.append("cXML-urlencoded", request);
+  formData.append("cXML-urlencoded", encodeURIComponent(request));
 
   return fetch(data.checkoutRedirectTo, {
     method: "post",
     body: formData.toString(),
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Access-Control-Allow-Origin": "*",
+    },
   })
     .then((r) => r.text())
     .catch(console.error);
