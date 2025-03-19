@@ -73,6 +73,9 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
       return
     }
 
+    console.log('data', data)
+
+    // Enfoque con formulario HTML real
     const items = products.reduce((acc, product) => {
       const value = `<ItemIn quantity="${product.quantity}">
           <ItemID>
@@ -120,41 +123,31 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
     </Message>
   </cXML>`
 
-    const formData = new URLSearchParams()
-    formData.append('cXML-urlencoded', encodeURIComponent(request))
-
-    console.log(request, encodeURIComponent(request))
-    console.log(data)
-
-    await fetch('https://sanofi-test.coupahost.com/punchout/checkout?id=769', {
-      method: 'post',
-      body: formData.toString(),
-      headers: { 
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Access-Control-Allow-Origin': '*' 
-      },
-    })
-      .then((r) => r.text())
-      .then(console.log)
-      .catch(console.error)
+    console.log('Request XML:', request)
+    
+    // Crear un formulario real para hacer la redirección
+    const form = document.createElement('form')
+    form.method = 'POST'
+    form.action = 'https://sanofi-test.coupahost.com/punchout/checkout?id=769'
+    //form.action = data.checkoutRedirectTo || 'https://sanofi-test.coupahost.com/punchout/checkout?id=769'
+    form.target = '_blank' // Abrir en una nueva pestaña
+    
+    // Añadir el campo cXML-urlencoded
+    const input = document.createElement('input')
+    input.type = 'hidden'
+    input.name = 'cXML-urlencoded'
+    input.value = encodeURIComponent(request)
+    form.appendChild(input)
+    
+    // Añadir el formulario al DOM, enviarlo y luego eliminarlo
+    document.body.appendChild(form)
+    form.submit()
+    document.body.removeChild(form)
+    
+    // Como estamos usando redirección del navegador, no hay respuesta que devolver
+    // Pero podemos devolver un objeto con información sobre lo que hicimos
+    return { success: true, message: 'Formulario enviado para redirección a Coupa' }
   }
-
-  // async function punchoutOrderMessage(
-  //   data: PunchoutData,
-  //   order: Order,
-  // ) {
-  //   if(!data?.payloadID){
-  //     return
-  //   }
-
-  //   const response = await fetch('/api/punchout/order', {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json', },
-  //     body: JSON.stringify({ orderId: order.id, punchoutData: data }),
-  //   })
-
-  //   console.log(response)
-  // }
 
   useEffect(() => {
     if (!shippingDateString) return
