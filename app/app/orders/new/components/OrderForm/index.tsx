@@ -113,7 +113,7 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
     <Message>
       <PunchOutOrderMessage>
         <BuyerCookie>${data.buyerCookie}</BuyerCookie>
-        <PunchOutOrderMessageHeader operationAllowed="create" quoteStatus="pending">
+        <PunchOutOrderMessageHeader operationAllowed="edit" quoteStatus="final">
           <Total>
             <Money currency="${products[0]?.estimatedCostCurrency?.toUpperCase() ?? 'ARS'}">${total}</Money>
           </Total>
@@ -199,7 +199,7 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
     <Message>
       <PunchOutOrderMessage>
         <BuyerCookie>${user?.punchout?.buyerCookie}</BuyerCookie>
-        <PunchOutOrderMessageHeader operationAllowed="create" quoteStatus="pending">
+        <PunchOutOrderMessageHeader operationAllowed="edit" quoteStatus="final">
           <Total>
             <Money currency="${products[0]?.estimatedCostCurrency?.toUpperCase() ?? 'ARS'}">${total}</Money>
           </Total>
