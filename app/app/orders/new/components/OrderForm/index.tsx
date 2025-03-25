@@ -164,6 +164,72 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
     setIsShippingDateInvalid(date <= minDate)
   }, [shippingDateString])
 
+  const handleSubmitPunchOut = () =>{
+    // Enfoque con formulario HTML real
+    const items = products.reduce((acc, product) => {
+      const value = `<ItemIn quantity="${product.quantity}">
+          <ItemDetail>
+            <UnitPrice>
+              <Money currency="${product.estimatedCostCurrency?.toUpperCase()}">${product.estimatedCost}</Money>
+            </UnitPrice>
+            <UnitOfMeasure>${product.quantityUnit}</UnitOfMeasure>
+            <Description xml:lang="en-US">${product.product}</Description>
+          </ItemDetail>
+        </ItemIn>
+        `
+      return acc + value
+    }, '')
+
+    const total = products.reduce((acc, product) => {
+      const productPrice = Number(product.estimatedCost)
+      return acc + productPrice * Number(product.quantity)
+    }, 0)
+
+    const request = `<?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE cXML SYSTEM "http://xml.cxml.org/schemas/cXML/1.2.014/cXML.dtd">
+  <cXML payloadID="${user?.punchout?.payloadID}" xml:lang="en-US" timestamp="${new Date().toISOString()}" version="1.2.014">
+    <Header>
+      <Sender>
+       <Credential domain="sanofi-staging.com">
+          <Identity>AR71688228</Identity>
+        </Credential>
+        <UserAgent>Coupa Procurement 1.0</UserAgent>
+      </Sender>
+    </Header>
+    <Message>
+      <PunchOutOrderMessage>
+        <BuyerCookie>${user?.punchout?.buyerCookie}</BuyerCookie>
+        <PunchOutOrderMessageHeader operationAllowed="create" quoteStatus="pending">
+          <Total>
+            <Money currency="${products[0]?.estimatedCostCurrency?.toUpperCase() ?? 'ARS'}">${total}</Money>
+          </Total>
+        </PunchOutOrderMessageHeader>
+        ${items}
+      </PunchOutOrderMessage>
+    </Message>
+  </cXML>`
+
+    console.log('Request XML:', request)
+    
+    // Crear un formulario real para hacer la redirección
+    const form = document.createElement('form')
+    form.method = 'POST'
+    form.action = 'https://sanofi-test.coupahost.com/punchout/checkout?id=769'
+    //form.action = data.checkoutRedirectTo || 'https://sanofi-test.coupahost.com/punchout/checkout?id=769'
+    //form.target = '_blank' // Abrir en una nueva pestaña
+    
+    // Añadir el campo cXML-urlencoded
+    const input = document.createElement('input')
+    input.type = 'hidden'
+    input.name = 'cXML-urlencoded'
+    input.value = encodeURIComponent(request)
+    form.appendChild(input)
+    
+    // Añadir el formulario al DOM, enviarlo y luego eliminarlo
+    document.body.appendChild(form)
+    form.submit()
+  }
+
   const handleSubmit = () => {
     if (isUploading || !user || !deliveryPointId || !shippingMethod || !shippingDateString || !finalAddress ) return
     setIsUploading(true)
@@ -225,7 +291,307 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
     setFiles(files)
   }
 
-  if (!user) return
+  if (!user) {
+    return null
+  }
+
+  if(user.punchout?.payloadID){
+    console.log({ punchoutData: user.punchout })
+    return (
+      <form
+        action={handleSubmitPunchOut}
+        className={cn(className, 'flex flex-col rounded p-4 shadow')}
+        {...formProps}
+      >
+        <div className="left-0 top-0 bg-gray-50 p-5">
+          { shippingDateString && isShippingDateInvalid && <p className="text-xs text-red-500">La fecha de entrega debe ser un dia habil y al menos 5 días en el futuro</p> }
+          <div className="flex flex-col gap-2">
+            <span className="text-xs font-medium">Los campos con * son obligatorios</span>
+            <label className="text-xs font-medium flex flex-col gap-2 items-start">
+              Titulo
+              <Input
+                type="text"
+                className="font-normal"
+                onChange={(e) => {
+                  const value = e.target.value
+                  setTitle(value)
+                }}
+              />
+            </label>
+            <div className="flex gap-4 flex-wrap">
+              <label className="text-xs font-medium flex flex-col gap-2 items-start">
+                Fecha de Entrega*
+                <Input
+                  className="font-normal"
+                  type="date"
+                  required
+                  min={new Date().toLocaleDateString()}
+                  onChange={(e) => {
+                    setShippingDateString(e.target.value)
+                  }}
+                />
+              </label>
+              <label className="text-xs font-medium flex flex-col gap-2 items-start">
+                Método de Envío*
+                <Select
+                  className="text-base font-normal min-w-40"
+                  placeholder="Método de Envío"
+                  required
+                  options={[
+                    {
+                      items: [
+                        {
+                          value: 'Puesto en Sucursal',
+                          label: 'Puesto en Sucursal'
+                        },
+                        {
+                          value: 'A Retirar',
+                          label: 'A Retirar'
+                        },
+                        {
+                          value: 'Envío Incluido',
+                          label: 'Envío Incluido'
+                        }
+                      ]
+                    }
+                  ]}
+                  onValueChange={(value) => {
+                    setShippingMethod(value)
+                  }}
+                />
+              </label>
+              <label className="text-xs font-medium flex flex-col gap-2 items-start">
+                Punto de Entrega* 
+                <Select
+                  className="text-base font-normal min-w-40"
+                  placeholder="Punto de Entrega"
+                  required
+                  options={[
+                    {
+                      items: deliveryPoints.map((deliveryPoint) => ({
+                        value: `${deliveryPoint.id}`,
+                        label: deliveryPoint.name ?? ''
+                      }))
+                    }
+                  ]}
+                  onValueChange={(value) => {
+                    const id = parseInt(value)
+                    setDeliveryPointId(id)
+                  }}
+                />
+              </label>
+            </div>
+            <label className="text-xs font-medium flex flex-col gap-2 items-start">
+              Cliente Final*
+              <Input
+                type="text"
+                className="font-normal"
+                onChange={(e) => {
+                  const value = e.target.value
+                  setFinalClient(value)
+                }}
+              />
+            </label>
+            <label className="text-xs font-medium flex flex-col gap-2 items-start">
+              Destino final*
+              <Input 
+                type="text"
+                className="font-normal"
+                onChange={(e) => {
+                  const value = e.target.value
+                  setFinalAddress(value)
+                }}
+              />
+            </label>
+          </div>
+          <div className="flex justify-between items-center gap-4 flex-wrap pt-4">
+            <h2 className="font-semibold text-2xl text-nowrap pt-6">Agregar un producto</h2>
+            <Button className="self-end text-xs mt-4" type="button" onClick={addProduct}>
+              +
+            </Button>
+          </div>
+          <Separator className="mt-6" />
+        </div>
+        <div className="flex flex-col gap-10 p-5">
+          {products.map((product, i, arr) => {
+            return (
+              <React.Fragment key={product.key}>
+                <div className="flex flex-col flex-1 gap-2">
+                  <div className="flex gap-4 flex-wrap">
+                    <label className="flex-1 max-w-96 text-xs font-medium flex flex-col gap-2 items-start">
+                      Producto* 
+                      <Input
+                        className="font-normal"
+                        name={`producto-${i}`}
+                        required
+                        defaultValue={product.product ?? ''}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          editProduct(i, 'product', value)
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <div className="flex gap-4 flex-wrap">
+                    <label className="flex-1 max-w-32 text-xs font-medium flex flex-col gap-2 items-start">
+                      Cantidad*
+                      <Input
+                        className="font-normal"
+                        type="number"
+                        name={`cantidad-${i}`}
+                        required min={1}
+                        defaultValue={product.quantity ?? 0}
+                        onChange={(e) => {
+                          let value = parseInt(e.target.value)
+                          if (Number.isNaN(value)) value = 0
+                          editProduct(i, 'quantity', value)
+                        }}
+                      />
+                    </label>
+                    <label className="flex-1 min-w-32 text-xs font-medium flex flex-col gap-2 items-start">
+                      Unidad*
+                      <Select
+                        className="font-normal w-fit"
+                        name={`unidad-${i}`}
+                        required
+                        defaultValue={product.quantityUnit ?? 'kg'}
+                        options={[
+                          {
+                            items: [
+                              { value: 'kg', label: 'Kilogramo' },
+                              { value: 'm', label: 'Metros' },
+                              { value: 'm2', label: 'Metro cuadrado' },
+                              { value: 'm3', label: 'Metro cúbico' },
+                              { value: 'l', label: 'Litros' },
+                              { value: 'kWh', label: '1000 Kilowatt hora' },
+                              { value: 'u', label: 'Unidad' },
+                              { value: 'par', label: 'Par' },
+                              { value: 'docena', label: 'Docena' },
+                              { value: 'ct', label: 'Quilate' },
+                              { value: 'millar', label: 'Millar' },
+                              { value: 'g', label: 'Gramo' },
+                              { value: 'mm', label: 'Milímetro' },
+                              { value: 'mm3', label: 'Milímetro cúbico' },
+                              { value: 'km', label: 'Kilómetro' },
+                              { value: 'hl', label: 'Hectolitro' },
+                              { value: 'cm', label: 'Centímetro' },
+                              { value: 'cm3', label: 'Centímetro cúbico' },
+                              { value: 'ton', label: 'Tonelada' },
+                              { value: 'hm3', label: 'Hectómetro cúbico' },
+                              { value: 'km3', label: 'Kilómetro cúbico' },
+                              { value: 'µg', label: 'Microgramo' },
+                              { value: 'ng', label: 'Nanogramo' },
+                              { value: 'mg', label: 'Miligramo' },
+                              { value: 'ml', label: 'Mililitro' }
+                            ]
+                          }
+                        ]}
+                        onValueChange={(value) => {
+                          editProduct(i, 'quantityUnit', value)
+                        }
+                        }
+                        placeholder={''}
+                      />
+
+                    </label>
+                  </div>
+                  <div className="flex gap-4 flex-wrap">
+                    <label className="flex-1 max-w-32 text-xs font-medium flex flex-col gap-2 items-start">
+                      Valor Estimado*
+                      <Input
+                        className="font-normal"
+                        type="number"
+                        name={`valor-${i}`}
+                        required
+                        min={1}
+                        defaultValue={product.estimatedCost ?? ''}
+                        onChange={(e) => {
+                          let value = parseInt(e.target.value)
+                          if (Number.isNaN(value)) value = 0
+                          editProduct(i, 'estimatedCost', value)
+                        }}
+                      />
+                    </label>
+                    <label className="flex-1 min-w-32 text-xs font-medium flex flex-col gap-2 items-start">
+                      Moneda
+                      <Select
+                        className="font-normal flex-1 w-20"
+                        name={`moneda-${i}`}
+                        placeholder="Moneda"
+                        required
+                        defaultValue={product.estimatedCostCurrency ?? 'ars'}
+                        options={[
+                          {
+                            items: [
+                              {
+                                value: 'ars',
+                                label: 'ARS'
+                              },
+                              {
+                                value: 'usd',
+                                label: 'USD'
+                              }
+                            ]
+                          }
+                        ]}
+                        onValueChange={(value) => {
+                          editProduct(i, 'estimatedCostCurrency', value)
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <div className="flex gap-4 flex-wrap">
+                    <label className="flex-1 text-xs font-medium flex flex-col gap-2 items-start">
+                      Notas de producto
+                      <Input
+                        className="font-normal"
+                        type="text"
+                        name={`productNotes-${i}`}
+                        defaultValue={product.productNotes ?? ''}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          editProduct(i, 'productNotes', value)
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <Button
+                    type="button"
+                    className="mt-8 self-end"
+                    variant="destructive"
+                    onClick={() => removeProduct(i)}
+                  >
+                    Eliminar Producto
+                  </Button>
+                </div>
+                {i !== arr.length - 1 && <Separator />}
+              </React.Fragment>
+            )
+          })}
+        </div>
+        <div className="flex flex-col gap-6 p-5">
+          <h3 className="font-semibold text-2xl text-nowrap">Adjuntar Archivos</h3>
+          <Dropzone onChange={handleFileDrop} />
+        </div>
+        <Button
+          type="submit"
+          className="mt-8"
+          disabled={
+            !deliveryPointId ||
+          !shippingDateString ||
+          !finalClient ||
+          !products.length ||
+          !finalAddress ||
+          isShippingDateInvalid ||
+          isUploading
+          }
+        >
+          PRESUPUESTAR
+        </Button>
+      </form>
+    )
+  }
+
   return (
     <form
       action={handleSubmit}
