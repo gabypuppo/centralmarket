@@ -206,7 +206,7 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
       </To>
       <Sender>
        <Credential domain="sanofi-staging.com">
-          <Identity>AR71688228</Identity>
+          <Identity>sanofi-staging.com</Identity>
         </Credential>
         <UserAgent>Coupa Procurement 1.0</UserAgent>
       </Sender>
