@@ -165,9 +165,14 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
   }, [shippingDateString])
 
   const handleSubmitPunchOut = () =>{
+    const randomOrderId = Math.ceil(Math.random()*100000)
     // Enfoque con formulario HTML real
     const items = products.reduce((acc, product) => {
       const value = `<ItemIn quantity="${product.quantity}">
+          <ItemID>
+            <SupplierPartID>${randomOrderId}</SupplierPartID>
+            <SupplierPartAuxiliaryID>${Math.ceil(Math.random()*100000)}</SupplierPartAuxiliaryID>
+          </ItemID>
           <ItemDetail>
             <UnitPrice>
               <Money currency="${product.estimatedCostCurrency?.toUpperCase()}">${product.estimatedCost}</Money>
@@ -189,6 +194,16 @@ export default function OrderForm({ deliveryPoints, className, ...formProps }: P
   <!DOCTYPE cXML SYSTEM "http://xml.cxml.org/schemas/cXML/1.2.014/cXML.dtd">
   <cXML payloadID="${user?.punchout?.payloadID}" xml:lang="en-US" timestamp="${new Date().toISOString()}" version="1.2.014">
     <Header>
+      <From>
+        <Credential domain="sanofi-staging.com">
+          <Identity>sanofi-staging.com</Identity>
+        </Credential>
+      </From>
+      <To>
+        <Credential domain="sanofi-staging.com">
+          <Identity>AR71688228</Identity>
+        </Credential>
+      </To>
       <Sender>
        <Credential domain="sanofi-staging.com">
           <Identity>AR71688228</Identity>
